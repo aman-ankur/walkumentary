@@ -13,8 +13,6 @@
 
 Walkumentary is a **modern, cost-optimized mobile web application** that transforms how you explore new places. Using cutting-edge AI technology, it generates personalized audio tours for landmarks and points of interest, focusing on South Africa and European destinations.
 
-**Built for personal use with emphasis on exceptional UX, modern design, and cost efficiency.**
-
 ## Key Features
 
 ### Smart Location Discovery
