@@ -1,9 +1,9 @@
 # Schemas package
-from .base import BaseResponse, PaginatedResponse
-from .auth import TokenData, UserResponse, UserPreferencesUpdate
-from .user import UserCreate, UserUpdate
-from .location import LocationCreate, LocationResponse, LocationSearchRequest, LocationSearchResponse
-from .tour import TourCreate, TourResponse, TourGenerationRequest
+from schemas.base import BaseResponse, PaginatedResponse
+from schemas.auth import TokenData, UserResponse, UserPreferencesUpdate
+from schemas.user import UserCreate, UserUpdate
+from schemas.location import LocationCreate, LocationResponse, LocationSearchRequest, LocationSearchResponse
+from schemas.tour import TourCreate, TourResponse, TourGenerationRequest
 
 __all__ = [
     "BaseResponse", 

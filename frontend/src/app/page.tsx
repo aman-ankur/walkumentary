@@ -1,21 +1,30 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthButton } from '@/components/auth/AuthButton';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { useAuthContext } from '@/components/auth/AuthProvider';
+import { LocationSearch, LocationCard } from '@/components/location';
 import { Map, Mic, Navigation, Users } from 'lucide-react';
+import { LocationResponse } from '@/lib/types';
 
 export default function HomePage() {
   const { user, loading } = useAuthContext();
+  const [selectedLocation, setSelectedLocation] = useState<LocationResponse | null>(null);
+
+  console.log('HomePage render:', { user: !!user, loading, userEmail: user?.email });
 
   if (loading) {
+    console.log('HomePage: showing loading spinner');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
+
+  console.log('HomePage: rendering main content');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -32,52 +41,105 @@ export default function HomePage() {
 
       <main className="container mx-auto px-4 py-8">
         {user ? (
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold mb-2">
-                  Welcome back, {user.full_name || 'Explorer'}!
-                </h2>
-                <p className="text-muted-foreground">
-                  Ready to discover amazing places with personalized audio tours?
-                </p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <Map className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle className="text-lg">Explore Locations</CardTitle>
-                    <CardDescription>
-                      Search for places or use GPS to find nearby attractions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Coming soon in Phase 1B
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <Mic className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle className="text-lg">AI Audio Tours</CardTitle>
-                    <CardDescription>
-                      Generate personalized tours with AI narration
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Coming soon in Phase 1D
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold mb-2">
+                Welcome back, {user.full_name || 'Explorer'}!
+              </h2>
+              <p className="text-muted-foreground">
+                Ready to discover amazing places with personalized audio tours?
+              </p>
             </div>
 
-            <div>
-              <UserProfile />
+            <div className="grid gap-8 lg:grid-cols-3">
+              {/* Location Search Section */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Map className="h-5 w-5" />
+                      Find Locations
+                    </CardTitle>
+                    <CardDescription>
+                      Search for places or use GPS to discover nearby attractions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <LocationSearch
+                      onLocationSelect={setSelectedLocation}
+                      placeholder="Search for museums, landmarks, restaurants..."
+                      enableGPS={true}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Selected Location Display */}
+                {selectedLocation && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Selected Location</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <LocationCard
+                        location={selectedLocation}
+                        onGenerateTour={() => {
+                          // TODO: Implement tour generation
+                          console.log('Generate tour for:', selectedLocation.name);
+                        }}
+                        onShowOnMap={() => {
+                          // TODO: Implement map view
+                          console.log('Show on map:', selectedLocation.name);
+                        }}
+                        onTakePhoto={() => {
+                          // TODO: Implement photo recognition
+                          console.log('Take photo for:', selectedLocation.name);
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Quick Actions */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <Mic className="h-8 w-8 text-primary mb-2" />
+                      <CardTitle className="text-lg">AI Audio Tours</CardTitle>
+                      <CardDescription>
+                        Generate personalized tours with AI narration
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedLocation 
+                          ? "Select 'Generate Tour' above to create your personalized audio tour"
+                          : "Select a location first to generate a tour"
+                        }
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <Navigation className="h-8 w-8 text-primary mb-2" />
+                      <CardTitle className="text-lg">GPS Discovery</CardTitle>
+                      <CardDescription>
+                        Find attractions near your current location
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Click the location button in the search bar to find nearby places
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* User Profile Section */}
+              <div className="space-y-6">
+                <UserProfile />
+              </div>
             </div>
           </div>
         ) : (

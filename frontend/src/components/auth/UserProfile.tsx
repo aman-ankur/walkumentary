@@ -17,7 +17,12 @@ export function UserProfile() {
     interests: user?.preferences?.interests?.join(', ') || '',
   });
 
-  if (!user) return null;
+  console.log('UserProfile render:', { user: !!user, userEmail: user?.email });
+
+  if (!user) {
+    console.log('UserProfile: no user, returning null');
+    return null;
+  }
 
   const handleSave = async () => {
     try {

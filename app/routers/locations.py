@@ -12,8 +12,10 @@ from schemas.location import (
     NearbyLocationsResponse,
     LocationResponse
 )
+from services.location_service import LocationService
 
 router = APIRouter()
+location_service = LocationService()
 
 @router.get("/search", response_model=LocationSearchResponse)
 async def search_locations(
@@ -31,13 +33,26 @@ async def search_locations(
             lat, lng = map(float, coordinates.split(','))
             coords = (lat, lng)
         
-        # For now, return mock data - will implement actual search service later
-        return LocationSearchResponse(
-            locations=[],
-            suggestions=[],
-            total=0
+        # Use location service to search
+        result = await location_service.search_locations(
+            query=query,
+            coordinates=coords,
+            radius=radius,
+            limit=limit,
+            db=db
         )
         
+        # Convert to response format
+        locations = [LocationResponse(**loc) for loc in result["locations"]]
+        
+        return LocationSearchResponse(
+            locations=locations,
+            suggestions=result["suggestions"],
+            total=result["total"]
+        )
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid coordinates format: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -49,11 +64,21 @@ async def detect_nearby_locations(
 ):
     """Detect nearby locations using GPS coordinates"""
     try:
-        # For now, return mock data - will implement actual location service later
+        # Use location service to detect nearby locations
+        result = await location_service.detect_nearby_locations(
+            coordinates=request.coordinates,
+            radius=request.radius,
+            limit=10,
+            db=db
+        )
+        
+        # Convert to response format
+        locations = [LocationResponse(**loc) for loc in result["locations"]]
+        
         return NearbyLocationsResponse(
-            locations=[],
-            center=request.coordinates,
-            radius=request.radius
+            locations=locations,
+            center=result["center"],
+            radius=result["radius"]
         )
         
     except Exception as e:
