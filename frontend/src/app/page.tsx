@@ -1,193 +1,73 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AuthButton } from '@/components/auth/AuthButton';
-import { UserProfile } from '@/components/auth/UserProfile';
-import { useAuthContext } from '@/components/auth/AuthProvider';
-import { LocationSearch, LocationCard } from '@/components/location';
-import { Map, Mic, Navigation, Users } from 'lucide-react';
-import { LocationResponse } from '@/lib/types';
+import React, { useState } from "react";
+import { LocationSearch } from "@/components/location/LocationSearch";
+import { GPSLocationDetector } from "@/components/location/GPSLocationDetector";
+import { LocationCard } from "@/components/location/LocationCard";
+import { LocationResponse } from "@/lib/types";
 
 export default function HomePage() {
-  const { user, loading } = useAuthContext();
   const [selectedLocation, setSelectedLocation] = useState<LocationResponse | null>(null);
 
-  console.log('HomePage render:', { user: !!user, loading, userEmail: user?.email });
-
-  if (loading) {
-    console.log('HomePage: showing loading spinner');
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  console.log('HomePage: rendering main content');
+  const handleLocationSelect = (location: LocationResponse) => {
+    setSelectedLocation(location);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Navigation className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">Walkumentary</h1>
-          </div>
-          <AuthButton />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Walkumentary
+          </h1>
+          <p className="text-xl text-gray-600">
+            Discover amazing places around you with AI-powered tours
+          </p>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8">
-        {user ? (
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2">
-                Welcome back, {user.full_name || 'Explorer'}!
-              </h2>
-              <p className="text-muted-foreground">
-                Ready to discover amazing places with personalized audio tours?
-              </p>
-            </div>
-
-            <div className="grid gap-8 lg:grid-cols-3">
-              {/* Location Search Section */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Map className="h-5 w-5" />
-                      Find Locations
-                    </CardTitle>
-                    <CardDescription>
-                      Search for places or use GPS to discover nearby attractions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <LocationSearch
-                      onLocationSelect={setSelectedLocation}
-                      placeholder="Search for museums, landmarks, restaurants..."
-                      enableGPS={true}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Selected Location Display */}
-                {selectedLocation && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Selected Location</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <LocationCard
-                        location={selectedLocation}
-                        onGenerateTour={() => {
-                          // TODO: Implement tour generation
-                          console.log('Generate tour for:', selectedLocation.name);
-                        }}
-                        onShowOnMap={() => {
-                          // TODO: Implement map view
-                          console.log('Show on map:', selectedLocation.name);
-                        }}
-                        onTakePhoto={() => {
-                          // TODO: Implement photo recognition
-                          console.log('Take photo for:', selectedLocation.name);
-                        }}
-                      />
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Quick Actions */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <Mic className="h-8 w-8 text-primary mb-2" />
-                      <CardTitle className="text-lg">AI Audio Tours</CardTitle>
-                      <CardDescription>
-                        Generate personalized tours with AI narration
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedLocation 
-                          ? "Select 'Generate Tour' above to create your personalized audio tour"
-                          : "Select a location first to generate a tour"
-                        }
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <Navigation className="h-8 w-8 text-primary mb-2" />
-                      <CardTitle className="text-lg">GPS Discovery</CardTitle>
-                      <CardDescription>
-                        Find attractions near your current location
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        Click the location button in the search bar to find nearby places
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* User Profile Section */}
-              <div className="space-y-6">
-                <UserProfile />
-              </div>
-            </div>
+        {/* Main Content */}
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Location Search */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-semibold mb-4">Find Locations</h2>
+            <LocationSearch 
+              onLocationSelect={handleLocationSelect}
+              placeholder="Search for museums, landmarks, parks..."
+            />
           </div>
-        ) : (
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="mb-8">
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Walkumentary
-              </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Discover the world with personalized AI-powered audio tours
-              </p>
-              <AuthButton size="lg" />
-            </div>
 
-            <div className="grid gap-8 md:grid-cols-3 mt-16">
-              <Card>
-                <CardHeader>
-                  <Map className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <CardTitle>Smart Location Discovery</CardTitle>
-                  <CardDescription>
-                    Search by text, use GPS, or snap a photo to identify landmarks instantly
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <Mic className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <CardTitle>AI-Generated Tours</CardTitle>
-                  <CardDescription>
-                    Get personalized audio tours tailored to your interests and schedule
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <Users className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <CardTitle>Personalized Experience</CardTitle>
-                  <CardDescription>
-                    Tours adapt to your preferences, language, and travel style
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
+          {/* GPS Detection */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-semibold mb-4">GPS Discovery</h2>
+            <GPSLocationDetector 
+              onLocationSelect={handleLocationSelect}
+              autoStart={false}
+              showSettings={true}
+            />
           </div>
-        )}
-      </main>
+
+          {/* Selected Location */}
+          {selectedLocation && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-2xl font-semibold mb-4">Selected Location</h2>
+              <LocationCard
+                location={selectedLocation}
+                onGenerateTour={() => {
+                  alert(`Generating AI tour for ${selectedLocation.name}! 🎧`);
+                }}
+                onShowOnMap={() => {
+                  alert(`Opening ${selectedLocation.name} on map! 🗺️`);
+                }}
+                onTakePhoto={() => {
+                  alert(`Camera feature for ${selectedLocation.name}! 📸`);
+                }}
+              />
+            </div>
+          )}
+
+        </div>
+      </div>
     </div>
   );
 }
