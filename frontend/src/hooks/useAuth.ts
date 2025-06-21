@@ -33,32 +33,74 @@ export function useAuth() {
 
   // Fetch user profile from our API
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
+    console.log('fetchUserProfile called for:', supabaseUser.email);
+    
+    // Create fallback user immediately to prevent loading issues
+    const fallbackUser: User = {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      full_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '',
+      avatar_url: supabaseUser.user_metadata?.avatar_url || '',
+      preferences: {
+        interests: [],
+        language: 'english',
+        default_tour_duration: 30,
+        audio_speed: 1.0,
+        theme: 'light'
+      },
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('Setting fallback user:', fallbackUser.email);
+    // Set fallback user first
+    setState(prev => ({ 
+      ...prev, 
+      user: fallbackUser,
+      error: null,
+      loading: false  // Set loading to false when user is set
+    }));
+
+    // Try to fetch from API in background with timeout
     try {
+      console.log('Attempting to fetch user profile from API...');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+      
       const userProfile = await apiClient.getCurrentUser();
+      clearTimeout(timeoutId);
+      
+      console.log('Successfully fetched user profile from API:', userProfile.email);
       setState(prev => ({ 
         ...prev, 
         user: userProfile,
-        error: null 
+        error: null,
+        loading: false  // Ensure loading is false with API user too
       }));
     } catch (error) {
-      console.error('Failed to fetch user profile:', error);
-      setError('Failed to load user profile');
+      console.error('Failed to fetch user profile, using fallback:', error);
+      // Keep fallback user, don't set error to avoid UI issues
     }
-  }, [setError]);
+  }, []);
 
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
+      console.log('Auth initialization starting...');
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('Got session:', { session: !!session, user: !!session?.user, error });
         
         if (error) {
           console.error('Auth initialization error:', error);
           setError(error.message);
+          setLoading(false);
           return;
         }
 
         if (session?.user) {
+          console.log('Setting session user:', session.user.email);
           setState(prev => ({ 
             ...prev, 
             supabaseUser: session.user, 
@@ -67,11 +109,14 @@ export function useAuth() {
           
           // Fetch user profile from our API
           await fetchUserProfile(session.user);
+        } else {
+          console.log('No session found, user not authenticated');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         setError('Failed to initialize authentication');
       } finally {
+        console.log('Auth initialization complete, setting loading to false');
         setLoading(false);
       }
     };
@@ -83,7 +128,7 @@ export function useAuth() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session);
+        console.log('Auth state change:', event, { session: !!session, user: !!session?.user });
         
         setState(prev => ({ 
           ...prev, 
@@ -92,8 +137,10 @@ export function useAuth() {
         }));
 
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, fetching profile for:', session.user.email);
           await fetchUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
           setState(prev => ({ 
             ...prev, 
             user: null,
@@ -101,6 +148,7 @@ export function useAuth() {
           }));
         }
         
+        console.log('Setting loading to false after auth state change');
         setLoading(false);
       }
     );

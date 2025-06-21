@@ -26,9 +26,13 @@ class LocationUpdate(BaseModel):
     location_type: Optional[str] = Field(None, max_length=50)
     location_metadata: Optional[dict] = None
 
-class LocationResponse(LocationBase, IDMixin, TimestampMixin):
+class LocationResponse(LocationBase):
+    id: Optional[str] = None  # Make ID optional for external API results
     image_url: Optional[str] = None
     location_metadata: dict = Field(default={})
+    distance: Optional[float] = None  # Distance in meters for proximity searches
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     
     @property
     def coordinates(self) -> Optional[Tuple[float, float]]:
