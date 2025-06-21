@@ -74,7 +74,7 @@ export function LocationSearch({
       const response = await api.get(searchUrl);
       console.log('Search API response:', response);
       
-      setResults(response.data || response);
+      setResults((response as any).data || response);
     } catch (err) {
       console.error("Search error:", err);
       setError("Failed to search locations. Please try again.");
@@ -148,11 +148,11 @@ export function LocationSearch({
         radius: 1000,
       });
       
-      if (response.data.locations.length > 0) {
+      if ((response as any).data.locations.length > 0) {
         setResults({
-          locations: response.data.locations,
+          locations: (response as any).data.locations,
           suggestions: [],
-          total: response.data.locations.length,
+          total: (response as any).data.locations.length,
         });
         setIsOpen(true);
         setQuery("Nearby locations");
