@@ -11,7 +11,7 @@
 
 ## Overview
 
-Walkumentary is a **modern, cost-optimized mobile web application** that transforms how you explore new places. Using cutting-edge AI technology, it generates personalized audio tours for landmarks and points of interest, focusing on South Africa and European destinations.
+Walkumentary is a **modern, cost-optimized mobile web application** that transforms how you explore new places. Using cutting-edge AI technology, it generates personalized audio tours for landmarks and points of interest.
 
 ## Key Features
 
@@ -327,5 +327,3 @@ For questions, issues, or feature requests:
 - **Discussions:** Use GitHub Discussions for community support
 
 ---
-
-**Explore. Learn. Discover.** - *Your intelligent travel companion for South Africa and Europe.*
