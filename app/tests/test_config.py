@@ -15,15 +15,16 @@ class TestSettings:
             # Override required fields
             with patch.dict(os.environ, {
                 'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-                'SECRET_KEY': 'test-secret-key',
+                'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
                 'SUPABASE_URL': 'https://test.supabase.co',
-                'SUPABASE_ANON_KEY': 'test-anon-key'
+                'SUPABASE_ANON_KEY': 'test-anon-key',
+                'DEBUG': 'false'
             }):
                 settings = Settings()
                 
-                assert settings.app_name == "Walkumentary API"
-                assert settings.debug is False
-                assert settings.cors_origins == ["*"]
+                assert settings.APP_NAME == "Walkumentary API"
+                assert settings.DEBUG is False
+                assert settings.ALLOWED_ORIGINS == ["http://localhost:3000", "https://localhost:3000"]
     
     def test_environment_variable_override(self):
         """Test that environment variables override defaults."""
@@ -50,7 +51,7 @@ class TestSettings:
         """Test CORS origins parsing from string."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key',
             'CORS_ORIGINS': 'http://localhost:3000,https://app.example.com,https://api.example.com'
@@ -70,7 +71,7 @@ class TestSettings:
         
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):
@@ -84,7 +85,7 @@ class TestSettings:
         """Test CORS origins parsing when empty."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key',
             'CORS_ORIGINS': ''
@@ -97,7 +98,7 @@ class TestSettings:
         """Test CORS origins parsing with whitespace."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key',
             'CORS_ORIGINS': ' http://localhost:3000 , https://example.com , https://api.example.com '
@@ -115,7 +116,7 @@ class TestSettings:
         """Test SQLite database URL conversion for SQLAlchemy."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'sqlite:///./test.db',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):
@@ -128,7 +129,7 @@ class TestSettings:
         """Test PostgreSQL database URL conversion for SQLAlchemy."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgres://user:pass@localhost:5432/dbname',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):
@@ -141,7 +142,7 @@ class TestSettings:
         """Test PostgreSQL database URL that's already correct."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost:5432/dbname',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):
@@ -188,7 +189,7 @@ class TestSettings:
             with patch.dict(os.environ, {
                 'DEBUG': debug_value,
                 'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-                'SECRET_KEY': 'test-secret-key',
+                'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
                 'SUPABASE_URL': 'https://test.supabase.co',
                 'SUPABASE_ANON_KEY': 'test-anon-key'
             }):
@@ -200,7 +201,7 @@ class TestSettings:
         # Valid URLs should work
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://valid.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):
@@ -223,7 +224,7 @@ class TestSettings:
         with patch.dict(os.environ, {
             'database_url': 'postgresql://user:pass@localhost/test',  # lowercase
             'DATABASE_URL': 'postgresql://user:pass@localhost/override',  # uppercase
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):
@@ -235,7 +236,7 @@ class TestSettings:
         """Test that settings are immutable after creation."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):
@@ -251,7 +252,7 @@ class TestSettings:
         """Test string representation of settings."""
         with patch.dict(os.environ, {
             'DATABASE_URL': 'postgresql://user:pass@localhost/test',
-            'SECRET_KEY': 'test-secret-key',
+            'SECRET_KEY': 'test-secret-key-that-is-at-least-32-characters-long',
             'SUPABASE_URL': 'https://test.supabase.co',
             'SUPABASE_ANON_KEY': 'test-anon-key'
         }):

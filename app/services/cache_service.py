@@ -79,6 +79,24 @@ class CacheService:
         except Exception as e:
             print(f"Cache delete error for key {key}: {e}")
     
+    async def get_json(self, key: str) -> Optional[dict]:
+        """Get JSON value from cache."""
+        value = await self.get(key)
+        if value:
+            try:
+                return json.loads(value) if isinstance(value, str) else value
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return None
+    
+    async def set_json(self, key: str, value: dict, ttl: int = 3600) -> None:
+        """Set JSON value in cache."""
+        try:
+            json_str = json.dumps(value) if not isinstance(value, str) else value
+            await self.set(key, json_str, ttl)
+        except Exception as e:
+            print(f"Cache set JSON error for key {key}: {e}")
+    
     async def clear(self) -> None:
         """Clear all cache entries."""
         try:
@@ -108,3 +126,6 @@ def get_cache() -> CacheService:
     if _cache_instance is None:
         _cache_instance = CacheService()
     return _cache_instance
+
+# Create global cache service instance
+cache_service = get_cache()
