@@ -20,10 +20,6 @@
 // });
 
 const nextConfig = {
-  experimental: {
-    appDir: true,
-    serverActions: true,
-  },
   images: {
     domains: ['supabase.co', 'lh3.googleusercontent.com'],
     formats: ['image/webp', 'image/avif'],

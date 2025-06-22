@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from database import init_db, close_db
-from routers import auth_router, health_router, locations_router, tours_router
+from routers import auth_router, health_router, locations_router, tours_router, admin_router
 from config import settings
 
 @asynccontextmanager
@@ -37,6 +37,7 @@ app.include_router(health_router, tags=["health"])
 app.include_router(auth_router, prefix="/auth", tags=["authentication"])
 app.include_router(locations_router, prefix="/locations", tags=["locations"])
 app.include_router(tours_router, prefix="/tours", tags=["tours"])
+app.include_router(admin_router, prefix="/admin", tags=["admin"])
 
 @app.get("/")
 async def root():

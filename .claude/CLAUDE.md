@@ -108,4 +108,4 @@ claude-code "Update the auth system" # Could fail if files don't exist
    ```bash
    nvm install 20 && nvm use 20
    npm uninstall -g @anthropic-ai/claude-code
-   npm install -g @anthropic-ai/claude-code
+   npm install -g @anthropic-ai/claude-code 
