@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     
     # CORS
     ALLOWED_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "https://localhost:3000"]
+        default=["http://localhost:3000", "https://localhost:3000", "http://localhost:3002", "https://localhost:3002"]
     )
     ALLOWED_METHODS: List[str] = Field(default=["*"])
     ALLOWED_HEADERS: List[str] = Field(default=["*"])

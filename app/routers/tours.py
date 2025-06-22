@@ -71,7 +71,7 @@ async def get_tour(
             detail=f"Failed to retrieve tour: {str(e)}"
         )
 
-@router.get("/user/tours", response_model=List[TourResponse])
+@router.get("/user/tours")
 async def get_user_tours(
     limit: int = 50,
     offset: int = 0,

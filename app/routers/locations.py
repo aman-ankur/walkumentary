@@ -10,7 +10,8 @@ from schemas.location import (
     LocationSearchResponse,
     GPSDetectionRequest,
     NearbyLocationsResponse,
-    LocationResponse
+    LocationResponse,
+    LocationCreate
 )
 from services.location_service import LocationService
 
@@ -80,6 +81,21 @@ async def detect_nearby_locations(
             center=result["center"],
             radius=result["radius"]
         )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/store", response_model=LocationResponse)
+async def store_external_location(
+    location_data: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Store an external location in database for tour generation"""
+    try:
+        # Use location service to store the location
+        stored_location = await location_service.store_external_location(location_data, db)
+        return stored_location
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

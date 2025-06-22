@@ -6,11 +6,12 @@ import json
 from typing import List, Optional, Tuple, Dict, Any
 from urllib.parse import urlencode
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
+from sqlalchemy import select, text, func
 
 from models.location import Location
 from schemas.location import LocationResponse
 from services.cache_service import CacheService
+import uuid
 
 class LocationService:
     """Service for location search and geocoding operations."""
@@ -419,3 +420,59 @@ class LocationService:
         except Exception as e:
             print(f"Fallback search error: {e}")
             return {"locations": [], "suggestions": [], "total": 0}
+    
+    async def store_external_location(
+        self, 
+        location_data: Dict[str, Any], 
+        db: AsyncSession
+    ) -> Dict[str, Any]:
+        """
+        Store an external location in the database for tour generation.
+        
+        Args:
+            location_data: Location data from external API
+            db: Database session
+            
+        Returns:
+            Stored location with database ID
+        """
+        try:
+            # For now, always create new location to avoid complex duplicate checking
+            # TODO: Add proper duplicate detection later
+            
+            # Create new location
+            new_location = Location(
+                id=uuid.uuid4(),
+                name=location_data.get("name", "Unknown Location"),
+                description=location_data.get("description"),
+                latitude=location_data.get("latitude"),
+                longitude=location_data.get("longitude"),
+                country=location_data.get("country"),
+                city=location_data.get("city"),
+                location_type=location_data.get("location_type", "place"),
+                location_metadata=location_data.get("location_metadata", {})
+            )
+            
+            db.add(new_location)
+            await db.commit()
+            await db.refresh(new_location)
+            
+            return {
+                "id": str(new_location.id),
+                "name": new_location.name,
+                "description": new_location.description,
+                "latitude": float(new_location.latitude) if new_location.latitude else None,
+                "longitude": float(new_location.longitude) if new_location.longitude else None,
+                "country": new_location.country,
+                "city": new_location.city,
+                "location_type": new_location.location_type,
+                "location_metadata": new_location.location_metadata or {}
+            }
+            
+        except Exception as e:
+            await db.rollback()
+            import traceback
+            print(f"Location storage error: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
+            print(f"Location data: {location_data}")
+            raise Exception(f"Failed to store location: {str(e)}")

@@ -71,7 +71,7 @@ export function LocationSearch({
       const searchUrl = `/locations/search?${params}`;
       console.log('Making API call to:', searchUrl);
       
-      const response = await api.get(searchUrl);
+      const response = await api.get(searchUrl, false); // No auth required for search
       console.log('Search API response:', response);
       
       setResults((response as any).data || response);

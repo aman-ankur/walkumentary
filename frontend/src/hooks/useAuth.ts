@@ -89,7 +89,17 @@ export function useAuth() {
     const initializeAuth = async () => {
       console.log('Auth initialization starting...');
       try {
+        // Add timeout to prevent infinite loading
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          console.log('Auth initialization timeout, setting loading to false');
+          setLoading(false);
+          controller.abort();
+        }, 3000); // 3 second timeout
+
         const { data: { session }, error } = await supabase.auth.getSession();
+        clearTimeout(timeoutId);
+        
         console.log('Got session:', { session: !!session, user: !!session?.user, error });
         
         if (error) {
@@ -111,12 +121,11 @@ export function useAuth() {
           await fetchUserProfile(session.user);
         } else {
           console.log('No session found, user not authenticated');
+          setLoading(false); // Important: Set loading to false even when no session
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         setError('Failed to initialize authentication');
-      } finally {
-        console.log('Auth initialization complete, setting loading to false');
         setLoading(false);
       }
     };

@@ -76,9 +76,9 @@ class TourService:
             
             # Create tour record with generating status
             tour_data = TourCreate(
-                title="",  # Will be filled after generation
-                description="",
-                content="",  # Will be filled after generation
+                title="Generating...",  # Placeholder that meets min_length=1
+                description="Tour content is being generated",
+                content="Tour content is being generated. Please wait...",  # Placeholder that meets min_length=10
                 duration_minutes=request.duration_minutes,
                 interests=request.interests,
                 language=request.language,
@@ -122,9 +122,17 @@ class TourService:
                 language=request.language
             )
             
-            # Generate audio from content
+            # Generate audio from content (truncate to TTS limit)
+            # OpenAI TTS has a 4096 character limit
+            audio_text = content_data["content"][:4000]  # Leave some buffer
+            if len(content_data["content"]) > 4000:
+                # Find last complete sentence within limit
+                last_period = audio_text.rfind('.')
+                if last_period > 3500:  # Ensure reasonable length
+                    audio_text = audio_text[:last_period + 1]
+            
             audio_data = await self.ai_service.generate_audio(
-                text=content_data["content"],
+                text=audio_text,
                 voice=settings.OPENAI_TTS_VOICE,
                 speed=1.0
             )
@@ -135,8 +143,8 @@ class TourService:
             audio_url = f"/api/tours/{tour_id}/audio"
             
             # Update tour in database
-            from database import async_session_factory
-            async with async_session_factory() as db:
+            from database import AsyncSessionLocal
+            async with AsyncSessionLocal() as db:
                 result = await db.execute(select(Tour).where(Tour.id == tour_id))
                 tour = result.scalar_one_or_none()
                 
@@ -159,8 +167,8 @@ class TourService:
             
             # Update tour status to error
             try:
-                from database import async_session_factory
-                async with async_session_factory() as db:
+                from database import AsyncSessionLocal
+                async with AsyncSessionLocal() as db:
                     result = await db.execute(select(Tour).where(Tour.id == tour_id))
                     tour = result.scalar_one_or_none()
                     
@@ -214,7 +222,7 @@ class TourService:
         user: User,
         limit: int = 50,
         offset: int = 0
-    ) -> List[Tour]:
+    ) -> List[Dict[str, Any]]:
         """
         Get all tours for the current user.
         
@@ -238,7 +246,43 @@ class TourService:
             )
             
             tours = result.scalars().all()
-            return list(tours)
+            
+            # Convert to response format with proper string IDs
+            tour_responses = []
+            for tour in tours:
+                tour_data = {
+                    "id": str(tour.id),
+                    "title": tour.title,
+                    "description": tour.description,
+                    "content": tour.content,
+                    "audio_url": tour.audio_url,
+                    "duration_minutes": tour.duration_minutes,
+                    "interests": tour.interests or [],
+                    "language": tour.language,
+                    "llm_provider": tour.llm_provider,
+                    "llm_model": tour.llm_model,
+                    "status": tour.status,
+                    "user_id": str(tour.user_id),
+                    "created_at": tour.created_at.isoformat() if tour.created_at else None,
+                    "updated_at": tour.updated_at.isoformat() if tour.updated_at else None,
+                    "location": {
+                        "id": str(tour.location.id),
+                        "name": tour.location.name,
+                        "description": tour.location.description,
+                        "latitude": float(tour.location.latitude) if tour.location.latitude else None,
+                        "longitude": float(tour.location.longitude) if tour.location.longitude else None,
+                        "country": tour.location.country,
+                        "city": tour.location.city,
+                        "location_type": tour.location.location_type,
+                        "location_metadata": tour.location.location_metadata or {},
+                        "image_url": tour.location.image_url,
+                        "created_at": tour.location.created_at.isoformat() if tour.location.created_at else None,
+                        "updated_at": tour.location.updated_at.isoformat() if tour.location.updated_at else None
+                    }
+                }
+                tour_responses.append(tour_data)
+            
+            return tour_responses
             
         except Exception as e:
             logger.error(f"Failed to get user tours for {user.id}: {str(e)}")
@@ -382,7 +426,7 @@ class TourService:
                 "country": location.country,
                 "coordinates": [float(location.latitude), float(location.longitude)] if location.latitude and location.longitude else None,
                 "type": location.location_type,
-                "metadata": location.metadata or {}
+                "metadata": location.location_metadata or {}
             }
             
         except Exception as e:

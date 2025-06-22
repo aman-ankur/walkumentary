@@ -19,7 +19,7 @@ class Location(BaseModel):
     location_type = Column(String, nullable=True, index=True)
     
     # Additional metadata (opening hours, website, etc.)
-    location_metadata = Column(JSON, default={})
+    location_metadata = Column("metadata", JSON, default={})
     
     # Image URL
     image_url = Column(String, nullable=True)

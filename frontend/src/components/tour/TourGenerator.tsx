@@ -69,8 +69,17 @@ export function TourGenerator({ location, onTourGenerated, onClose }: TourGenera
 
   const getCostEstimate = async () => {
     try {
+      // Ensure location has a database ID
+      let locationId = location.id;
+      
+      if (!locationId) {
+        console.log('Storing external location for cost estimate...');
+        const storedLocation = await api.storeExternalLocation(location);
+        locationId = storedLocation.id;
+      }
+
       const params: TourGenerationParams = {
-        location_id: location.id,
+        location_id: locationId,
         interests: selectedInterests,
         duration_minutes: duration[0],
         language: language
@@ -111,8 +120,17 @@ export function TourGenerator({ location, onTourGenerated, onClose }: TourGenera
     setError(null);
 
     try {
+      // Ensure location has a database ID
+      let locationId = location.id;
+      
+      if (!locationId) {
+        console.log('Storing external location for tour generation...');
+        const storedLocation = await api.storeExternalLocation(location);
+        locationId = storedLocation.id;
+      }
+
       const params: TourGenerationParams = {
-        location_id: location.id,
+        location_id: locationId,
         interests: selectedInterests,
         duration_minutes: duration[0],
         language: language
