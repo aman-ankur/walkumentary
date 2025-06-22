@@ -340,11 +340,12 @@ Requirements:
         cache_key = self._create_audio_cache_key(text, voice, speed)
         
         # Check cache first (audio is expensive to generate)
-        cached_audio = await self.cache.get(cache_key)
-        if cached_audio:
+        cached_audio_b64 = await self.cache.get(cache_key)
+        if cached_audio_b64:
             logger.info("Audio cache hit")
             await self.usage_tracker.record_cache_hit("audio_generation", LLMProvider.OPENAI)
-            return cached_audio.encode('latin-1')  # Convert back to bytes
+            import base64
+            return base64.b64decode(cached_audio_b64)
         
         try:
             response = await self.openai_client.audio.speech.create(
@@ -357,9 +358,11 @@ Requirements:
             audio_data = response.content
             
             # Cache audio for 30 days (expensive to regenerate)
+            import base64
+            audio_b64 = base64.b64encode(audio_data).decode('utf-8')
             await self.cache.set(
                 cache_key, 
-                audio_data.decode('latin-1'),  # Store as string
+                audio_b64,
                 ttl=86400 * 30
             )
             

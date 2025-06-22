@@ -139,7 +139,9 @@ class TourService:
             
             # Store audio file (for now, we'll use cache - in production, use cloud storage)
             audio_key = f"audio:tour:{tour_id}"
-            await self.cache.set(audio_key, audio_data.decode('latin-1'), ttl=86400 * 30)
+            import base64
+            audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+            await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
             audio_url = f"/api/tours/{tour_id}/audio"
             
             # Update tour in database
@@ -306,26 +308,132 @@ class TourService:
             Audio data as bytes
         """
         try:
+            logger.info(f"Getting audio for tour {tour_id} by user {user.id}")
+            
             # Verify user owns the tour
             tour = await self.get_tour(db, tour_id, user)
+            logger.info(f"Tour found: status={tour.status}, audio_url={tour.audio_url}")
             
-            if tour.status != "ready" or not tour.audio_url:
+            if tour.status != "ready":
+                logger.error(f"Tour status is {tour.status}, not ready")
+                raise TourServiceError(f"Tour is not ready (status: {tour.status})")
+            
+            if not tour.audio_url:
+                logger.error("Tour has no audio_url")
                 raise TourServiceError("Audio not available for this tour")
             
             # Get audio from cache
             audio_key = f"audio:tour:{tour_id}"
-            audio_data = await self.cache.get(audio_key)
+            logger.info(f"Looking for audio in cache with key: {audio_key}")
+            audio_b64 = await self.cache.get(audio_key)
             
-            if not audio_data:
-                raise TourServiceError("Audio data not found")
+            if not audio_b64:
+                logger.error(f"Audio data not found in cache for key: {audio_key}")
+                logger.info(f"Attempting to regenerate missing audio for tour {tour_id}")
+                
+                # Try to regenerate audio from existing content
+                if tour.content:
+                    try:
+                        # Generate audio from existing content (truncate to TTS limit)
+                        audio_text = tour.content[:4000]
+                        if len(tour.content) > 4000:
+                            last_period = audio_text.rfind('.')
+                            if last_period > 3500:
+                                audio_text = audio_text[:last_period + 1]
+                        
+                        logger.info(f"Regenerating audio for {len(audio_text)} characters")
+                        audio_data = await self.ai_service.generate_audio(
+                            text=audio_text,
+                            voice=settings.OPENAI_TTS_VOICE,
+                            speed=1.0
+                        )
+                        
+                        # Store regenerated audio
+                        import base64
+                        audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+                        await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
+                        
+                        logger.info(f"Successfully regenerated and cached audio for tour {tour_id}")
+                        return base64.b64decode(audio_b64)
+                        
+                    except Exception as regen_error:
+                        logger.error(f"Failed to regenerate audio: {regen_error}")
+                        raise TourServiceError("Audio data not found and regeneration failed")
+                else:
+                    raise TourServiceError("Audio data not found and no content available for regeneration")
             
-            return audio_data.encode('latin-1')
+            logger.info(f"Found audio data in cache, length: {len(audio_b64)}")
+            import base64
+            try:
+                audio_bytes = base64.b64decode(audio_b64)
+                logger.info(f"Successfully decoded audio, byte length: {len(audio_bytes)}")
+                return audio_bytes
+            except Exception as decode_error:
+                logger.error(f"Failed to decode base64 audio: {decode_error}")
+                raise TourServiceError(f"Failed to decode audio data: {decode_error}")
             
         except TourServiceError:
             raise
         except Exception as e:
             logger.error(f"Failed to get tour audio {tour_id}: {str(e)}")
             raise TourServiceError(f"Failed to get tour audio: {str(e)}")
+    
+    async def regenerate_tour_audio(
+        self,
+        db: AsyncSession,
+        tour_id: uuid.UUID,
+        user: User
+    ) -> None:
+        """
+        Regenerate audio for an existing tour.
+        
+        Args:
+            db: Database session
+            tour_id: Tour ID
+            user: Current user
+        """
+        try:
+            logger.info(f"Regenerating audio for tour {tour_id} by user {user.id}")
+            
+            # Verify user owns the tour
+            tour = await self.get_tour(db, tour_id, user)
+            
+            if not tour.content:
+                raise TourServiceError("Tour has no content to generate audio from")
+            
+            # Generate audio from existing content (truncate to TTS limit)
+            audio_text = tour.content[:4000]  # Leave some buffer
+            if len(tour.content) > 4000:
+                # Find last complete sentence within limit
+                last_period = audio_text.rfind('.')
+                if last_period > 3500:  # Ensure reasonable length
+                    audio_text = audio_text[:last_period + 1]
+            
+            logger.info(f"Generating audio for {len(audio_text)} characters")
+            audio_data = await self.ai_service.generate_audio(
+                text=audio_text,
+                voice=settings.OPENAI_TTS_VOICE,
+                speed=1.0
+            )
+            
+            # Store audio file in cache
+            audio_key = f"audio:tour:{tour_id}"
+            import base64
+            audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+            await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
+            
+            # Update audio_url in database if not set
+            if not tour.audio_url:
+                tour.audio_url = f"/api/tours/{tour_id}/audio"
+                await db.commit()
+            
+            logger.info(f"Successfully regenerated audio for tour {tour_id}")
+            
+        except TourServiceError:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to regenerate tour audio {tour_id}: {str(e)}")
+            raise TourServiceError(f"Failed to regenerate tour audio: {str(e)}")
     
     async def delete_tour(
         self,

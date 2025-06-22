@@ -157,6 +157,33 @@ async def get_tour_audio(
             detail=f"Failed to get tour audio: {str(e)}"
         )
 
+@router.post("/{tour_id}/regenerate-audio")
+async def regenerate_tour_audio(
+    tour_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Regenerate audio for an existing tour"""
+    try:
+        await tour_service.regenerate_tour_audio(db, tour_id, current_user)
+        return {"message": "Audio regeneration started"}
+        
+    except TourNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tour not found"
+        )
+    except TourServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to regenerate audio: {str(e)}"
+        )
+
 @router.delete("/{tour_id}")
 async def delete_tour(
     tour_id: uuid.UUID,
