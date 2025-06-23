@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AuthButton } from "@/components/auth/AuthButton";
 
 export const Header = () => {
   return (
@@ -24,11 +24,9 @@ export const Header = () => {
           </Link>
         </nav>
 
-        {/* CTA */}
+        {/* Auth CTA */}
         <div className="hidden md:block">
-          <Button variant="primary" size="sm">
-            Get Started
-          </Button>
+          <AuthButton variant="primary" size="sm" />
         </div>
       </div>
     </header>

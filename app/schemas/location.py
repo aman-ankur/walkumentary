@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 from datetime import datetime
 import uuid
 from schemas.base import IDMixin, TimestampMixin
@@ -27,7 +27,7 @@ class LocationUpdate(BaseModel):
     location_metadata: Optional[dict] = None
 
 class LocationResponse(LocationBase):
-    id: Optional[str] = None  # Make ID optional for external API results
+    id: Optional[Union[str, uuid.UUID]] = None  # Accept UUID or string
     image_url: Optional[str] = None
     location_metadata: dict = Field(default={})
     distance: Optional[float] = None  # Distance in meters for proximity searches

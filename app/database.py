@@ -12,7 +12,8 @@ engine = create_async_engine(
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
     pool_pre_ping=True,
-    echo=settings.DEBUG,
+    # Disable SQL statement echo; detailed logs can be enabled by LOG_LEVEL or setting SQL_DEBUG env
+    echo=False,
     # For SQLite testing
     poolclass=StaticPool if "sqlite" in settings.DATABASE_URL else None,
     connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},

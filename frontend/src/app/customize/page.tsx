@@ -153,8 +153,9 @@ export default function CustomizePage() {
               tourId={generatedTourId}
               onTourReady={(tour) => {
                 setIsGenerating(false);
-                playTrack({ src: tour.audio_url!, title: tour.title, cover: tour.location.image_url });
-                // Optionally navigate to dedicated player page later
+                if (tour.audio_url) {
+                  playTrack({ src: tour.audio_url, title: tour.title, cover: tour.location.image_url });
+                }
               }}
               onError={(err) => {
                 alert(err);

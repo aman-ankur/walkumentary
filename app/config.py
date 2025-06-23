@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000)
     RELOAD: bool = Field(default=False)
     
+    # Public API base URL (used for absolute links)
+    API_BASE_URL: str = Field(default="http://localhost:8000")
+    
     # Security
     SECRET_KEY: str = Field(..., min_length=32)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)

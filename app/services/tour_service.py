@@ -113,36 +113,68 @@ class TourService:
         """Background task to generate tour content and audio"""
         try:
             logger.info(f"Starting background generation for tour {tour_id}")
-            
-            # Generate tour content using AI
-            content_data = await self.ai_service.generate_tour_content(
-                location=location,
-                interests=request.interests,
-                duration_minutes=request.duration_minutes,
-                language=request.language
+
+            # ----------------- 1. Generate textual content -----------------
+            try:
+                content_data = await self.ai_service.generate_tour_content(
+                    location=location,
+                    interests=request.interests,
+                    duration_minutes=request.duration_minutes,
+                    language=request.language
+                )
+            except Exception as e:
+                # Capture stack-trace for easier debugging
+                logger.exception("LLM content generation failed")
+                await self._set_tour_error(tour_id, f"LLM error: {str(e)}")
+                return
+
+            # Persist title/content immediately and log milestone
+            await self._save_content(tour_id, content_data, status="content_ready")
+            logger.info(
+                "LLM content generated",
+                extra={
+                    "tour_id": str(tour_id),
+                    "chars": len(content_data["content"]),
+                    "provider": content_data["metadata"]["actual_provider"],
+                    "model": content_data["metadata"]["model"],
+                },
             )
-            
-            # Generate audio from content (truncate to TTS limit)
-            # OpenAI TTS has a 4096 character limit
-            audio_text = content_data["content"][:4000]  # Leave some buffer
-            if len(content_data["content"]) > 4000:
-                # Find last complete sentence within limit
-                last_period = audio_text.rfind('.')
-                if last_period > 3500:  # Ensure reasonable length
-                    audio_text = audio_text[:last_period + 1]
-            
-            audio_data = await self.ai_service.generate_audio(
-                text=audio_text,
-                voice=settings.OPENAI_TTS_VOICE,
-                speed=1.0
-            )
-            
+
+            # ----------------- 2. Generate audio (TTS) ---------------------
+            audio_data: Optional[bytes] = None
+            try:
+                import asyncio, time
+                audio_text = self._truncate_for_tts(content_data["content"])
+                t0 = time.perf_counter()
+                audio_data = await asyncio.wait_for(
+                    self.ai_service.generate_audio(
+                        text=audio_text,
+                        voice=settings.OPENAI_TTS_VOICE,
+                        speed=1.2,
+                    ),
+                    timeout=60,
+                )
+                logger.info(
+                    "TTS generated",
+                    extra={
+                        "tour_id": str(tour_id),
+                        "ms": int((time.perf_counter() - t0) * 1000),
+                        "bytes": len(audio_data) if audio_data else 0,
+                    },
+                )
+            except asyncio.TimeoutError:
+                logger.warning("TTS generation timed out – proceeding without audio for now")
+            except Exception:
+                logger.exception("TTS generation failed – proceeding without audio")
+
             # Store audio file (for now, we'll use cache - in production, use cloud storage)
             audio_key = f"audio:tour:{tour_id}"
             import base64
-            audio_b64 = base64.b64encode(audio_data).decode('utf-8')
-            await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
-            audio_url = f"/api/tours/{tour_id}/audio"
+            audio_url: Optional[str] = None
+            if audio_data:
+                audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+                await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
+                audio_url = f"{settings.API_BASE_URL}/tours/{tour_id}/audio"
             
             # Update tour in database
             from database import AsyncSessionLocal
@@ -165,7 +197,7 @@ class TourService:
                     logger.error(f"Tour {tour_id} not found during content update")
                     
         except Exception as e:
-            logger.error(f"Background generation failed for tour {tour_id}: {str(e)}")
+            logger.exception(f"Background generation failed for tour {tour_id}")
             
             # Update tour status to error
             try:
@@ -314,8 +346,8 @@ class TourService:
             tour = await self.get_tour(db, tour_id, user)
             logger.info(f"Tour found: status={tour.status}, audio_url={tour.audio_url}")
             
-            if tour.status != "ready":
-                logger.error(f"Tour status is {tour.status}, not ready")
+            if tour.status not in ("ready", "content_ready"):
+                logger.error(f"Tour status is {tour.status}, audio not yet available")
                 raise TourServiceError(f"Tour is not ready (status: {tour.status})")
             
             if not tour.audio_url:
@@ -345,13 +377,18 @@ class TourService:
                         audio_data = await self.ai_service.generate_audio(
                             text=audio_text,
                             voice=settings.OPENAI_TTS_VOICE,
-                            speed=1.0
+                            speed=1.2
                         )
                         
                         # Store regenerated audio
                         import base64
                         audio_b64 = base64.b64encode(audio_data).decode('utf-8')
                         await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
+                        
+                        # Update audio_url so future calls skip regen
+                        if not tour.audio_url:
+                            tour.audio_url = f"{settings.API_BASE_URL}/tours/{tour_id}/audio"
+                            await db.commit()
                         
                         logger.info(f"Successfully regenerated and cached audio for tour {tour_id}")
                         return base64.b64decode(audio_b64)
@@ -413,7 +450,7 @@ class TourService:
             audio_data = await self.ai_service.generate_audio(
                 text=audio_text,
                 voice=settings.OPENAI_TTS_VOICE,
-                speed=1.0
+                speed=1.2
             )
             
             # Store audio file in cache
@@ -424,7 +461,7 @@ class TourService:
             
             # Update audio_url in database if not set
             if not tour.audio_url:
-                tour.audio_url = f"/api/tours/{tour_id}/audio"
+                tour.audio_url = f"{settings.API_BASE_URL}/tours/{tour_id}/audio"
                 await db.commit()
             
             logger.info(f"Successfully regenerated audio for tour {tour_id}")
@@ -579,6 +616,55 @@ class TourService:
         except Exception as e:
             logger.error(f"Failed to estimate generation cost: {str(e)}")
             raise TourServiceError(f"Failed to estimate cost: {str(e)}")
+
+    # ---------------- Helper utilities ----------------
+
+    async def _update_tour_status(self, tour_id: uuid.UUID, status: str):
+        """Update only status field quickly"""
+        from database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(select(Tour).where(Tour.id == tour_id))
+            tour = result.scalar_one_or_none()
+            if tour:
+                tour.status = status
+                await db.commit()
+
+    async def _set_tour_error(self, tour_id: uuid.UUID, message: str):
+        from database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(select(Tour).where(Tour.id == tour_id))
+            tour = result.scalar_one_or_none()
+            if tour:
+                tour.status = "error"
+                tour.description = message[:255]
+                await db.commit()
+
+    def _truncate_for_tts(self, text: str) -> str:
+        """Trim text to ~2500 chars so TTS returns faster and end cleanly on a sentence."""
+        max_len = 2500
+        t = text[:max_len]
+        if len(text) > max_len:
+            # Try to avoid cutting words; backtrack to last period in the last 20 % of slice
+            last_period = t.rfind('.')
+            if last_period > int(max_len * 0.8):
+                t = t[: last_period + 1]
+        return t
+
+    async def _save_content(self, tour_id: uuid.UUID, content_data: dict, status: str = "content_ready"):
+        """Persist generated title/content and update status in one quick transaction."""
+        from database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(select(Tour).where(Tour.id == tour_id))
+            tour = result.scalar_one_or_none()
+            if tour:
+                tour.title = content_data["title"]
+                tour.content = content_data["content"]
+                tour.status = status
+                # Store minimal metadata so we don't lose provider info if audio step fails later
+                tour.llm_provider = content_data["metadata"]["actual_provider"]
+                tour.llm_model = content_data["metadata"]["model"]
+                tour.generation_params = content_data["metadata"]
+                await db.commit()
 
 # Global tour service instance
 tour_service = TourService()

@@ -95,6 +95,15 @@ export function TourStatusTracker({
         if (onTourReady) {
           onTourReady(fullTour);
         }
+      } else if (statusResponse.status === 'content_ready' && !tour) {
+        // Content is ready (audio may still be rendering). Fetch tour so we can display it.
+        const fullTour = await api.getTour(tourId);
+        setTour(fullTour);
+
+        // Let parent component load player page while we keep polling for audio.
+        if (onTourReady) {
+          onTourReady(fullTour);
+        }
       } else if (statusResponse.status === 'error') {
         setError('Tour generation failed. Please try again.');
         stopPolling();
@@ -120,6 +129,8 @@ export function TourStatusTracker({
     switch (status.status) {
       case 'generating':
         return 50;
+      case 'content_ready':
+        return 80;
       case 'ready':
         return 100;
       case 'error':
@@ -134,6 +145,7 @@ export function TourStatusTracker({
     
     switch (status.status) {
       case 'generating':
+      case 'content_ready':
         return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />;
       case 'ready':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
@@ -151,6 +163,8 @@ export function TourStatusTracker({
     switch (status.status) {
       case 'generating':
         return 'Generating your personalized tour content and audio...';
+      case 'content_ready':
+        return 'Content generated! Creating audio narration...';
       case 'ready':
         return 'Your tour is ready! Audio and content have been generated.';
       case 'error':
@@ -201,7 +215,7 @@ export function TourStatusTracker({
         <div className="text-center space-y-2">
           <p className="text-sm">{getStatusMessage()}</p>
           
-          {status?.status === 'generating' && (
+          {(status?.status === 'generating' || status?.status === 'content_ready') && (
             <div className="text-xs text-muted-foreground">
               AI is creating personalized content based on your preferences...
             </div>
@@ -209,7 +223,7 @@ export function TourStatusTracker({
         </div>
 
         {/* Generation Steps */}
-        {status?.status === 'generating' && (
+        {(status?.status === 'generating' || status?.status === 'content_ready') && (
           <div className="space-y-3">
             <div className="text-sm font-medium">Generation Process:</div>
             <div className="space-y-2">
@@ -266,7 +280,7 @@ export function TourStatusTracker({
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          {status?.status === 'generating' && (
+          {(status?.status === 'generating' || status?.status === 'content_ready') && (
             <Button 
               variant="outline" 
               onClick={checkStatus}
