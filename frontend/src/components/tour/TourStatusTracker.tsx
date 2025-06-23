@@ -96,14 +96,9 @@ export function TourStatusTracker({
           onTourReady(fullTour);
         }
       } else if (statusResponse.status === 'content_ready' && !tour) {
-        // Content is ready (audio may still be rendering). Fetch tour so we can display it.
+        // Text is ready; load content so UI can preview. Do NOT call onTourReady yet.
         const fullTour = await api.getTour(tourId);
         setTour(fullTour);
-
-        // Let parent component load player page while we keep polling for audio.
-        if (onTourReady) {
-          onTourReady(fullTour);
-        }
       } else if (statusResponse.status === 'error') {
         setError('Tour generation failed. Please try again.');
         stopPolling();

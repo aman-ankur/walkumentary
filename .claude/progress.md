@@ -97,6 +97,14 @@ Phase 4: Performance & Deployment     ░░░░░░░░░░░░░░
 
 > ✅ End-to-end flow verified: user selects interests → background job generates text & audio → MP3 streamed in <30 s.
 
+### 2025-06-24  Evening Patch – Smooth Player Flow
+
+- Tracker waits for `ready` with audio before redirect.
+- Dedicated player page uses `loadTrack`, avoiding browser autoplay block.
+- Redis cache serialization fixed; usage tracker errors resolved.
+
+> ✅ User flow: generate → redirect after audio ready → single click plays tour.
+
 ---
 
 **Next Update:** After Phase 1C completion (GPS Location Detection)

@@ -411,6 +411,13 @@ jobs:
     - Railway deployment
 ```
 
+### 7.4 Evening Patch – Guaranteed Playback Flow (2025-06-24)
+* `TourStatusTracker` now waits for **status == ready** and a non-null `audio_url` before redirecting.
+* `Customize → Player` redirect happens only when MP3 is confirmed, eliminating autoplay-blocking quirks.
+* Player page pre-loads the track (no autoplay); first user gesture triggers `audio.play()` reliably.
+* Added `loadTrack()` vs `playTrack()` distinction in `AudioPlayerProvider`.
+* Redis cache layer now JSON-serialises dict/list values and UTF-8 decodes bytes on read, fixing `'bytes' object has no attribute ...` errors in usage tracking.
+
 ## 8. Monitoring & Maintenance
 
 ### 8.1 Application Monitoring

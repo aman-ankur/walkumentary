@@ -16,6 +16,7 @@ interface AudioPlayerContextValue {
   duration: number;
   volume: number;
   playTrack: (track: Track) => void;
+  loadTrack: (track: Track) => void;
   togglePlay: () => void;
   seek: (time: number) => void;
   setVolume: (volume: number) => void;
@@ -55,6 +56,11 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const playTrack = useCallback((track: Track) => {
     setCurrentTrack(track);
     setIsPlaying(true);
+  }, []);
+
+  const loadTrack = useCallback((track: Track) => {
+    setCurrentTrack(track);
+    setIsPlaying(false);
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -111,6 +117,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     duration,
     volume,
     playTrack,
+    loadTrack,
     togglePlay,
     seek,
     setVolume,

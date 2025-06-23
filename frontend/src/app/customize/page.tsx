@@ -6,10 +6,10 @@ import { NarrativeCard, NarrativeItem } from "@/components/customize/NarrativeCa
 import { VoiceCard, VoiceItem } from "@/components/customize/VoiceCard";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useAudioPlayer } from "@/components/player/AudioPlayerProvider";
 import { api } from "@/lib/api";
 import { useSearchParams } from "next/navigation";
 import { TourStatusTracker } from "@/components/tour/TourStatusTracker";
+import { useRouter } from "next/navigation";
 
 const interests: InterestItem[] = [
   { id: "historical", title: "Historical Tales", subtitle: "Ancient stories & heritage", img: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=400&h=400&fit=crop" },
@@ -44,11 +44,11 @@ export default function CustomizePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTourId, setGeneratedTourId] = useState<string | null>(null);
 
-  const { playTrack } = useAudioPlayer();
-
   const searchParams = useSearchParams();
 
   const locationId = searchParams.get("location_id");
+
+  const router = useRouter();
 
   const toggleInterest = (id: string) => {
     const next = new Set(selectedInterests);
@@ -154,7 +154,7 @@ export default function CustomizePage() {
               onTourReady={(tour) => {
                 setIsGenerating(false);
                 if (tour.audio_url) {
-                  playTrack({ src: tour.audio_url, title: tour.title, cover: tour.location.image_url });
+                  router.push(`/tour/${tour.id}/play`);
                 }
               }}
               onError={(err) => {
