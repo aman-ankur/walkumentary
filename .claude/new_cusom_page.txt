@@ -1,0 +1,435 @@
+Updated Customization Page Specification
+Based on your new mockup, here's the detailed specification to transform the customization page to match this design exactly:
+Page Layout & Styling Updates
+Color Scheme & Typography
+typescript// Updated colors for this page
+const colors = {
+  primary: '#E87A47', // Orange
+  background: '#FEFBF8', // Warm cream background
+  cardBackground: '#FFFFFF',
+  text: '#2C2C2C',
+  textMuted: '#666666',
+  accent: '#F4A261' // Lighter orange for accents
+}
+Main Page Component
+tsx// pages/customize.tsx
+const CustomizePage = () => (
+  <div className="min-h-screen bg-[#FEFBF8]">
+    <Header />
+    
+    <div className="max-w-5xl mx-auto px-6 py-16">
+      {/* Page Header */}
+      <div className="text-center mb-16">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 mb-8">
+          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+          <span className="text-orange-700 font-medium text-sm">CRAFT YOUR JOURNEY</span>
+        </div>
+        
+        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          Customize Your<br />
+          <span className="text-orange-500">Audio Adventure</span>
+        </h1>
+        
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          Exploring <span className="text-orange-500 font-semibold">Barcelona</span> — Tell us what captivates you, and we'll weave together a personalized narrative of discovery.
+        </p>
+      </div>
+      
+      <div className="space-y-16">
+        <InterestsSection />
+        <NarrativeStyleSection />
+        <PaceSection />
+        <VoiceSection />
+        <StartJourneySection />
+      </div>
+    </div>
+  </div>
+)
+Interests Section with Circular Icons
+tsx// components/InterestsSection.tsx
+const InterestsSection = () => {
+  const interests = [
+    {
+      id: 'historical',
+      title: 'Historical Tales',
+      subtitle: 'Ancient stories & heritage',
+      image: '/images/historical.jpg', // Wheat field image
+      selected: false
+    },
+    {
+      id: 'architectural',
+      title: 'Architectural Marvels',
+      subtitle: 'Design & craftsmanship',
+      image: '/images/architectural.jpg', // Library/books image
+      selected: false
+    },
+    {
+      id: 'cultural',
+      title: 'Cultural Immersion',
+      subtitle: 'Local traditions & customs',
+      image: '/images/cultural.jpg', // Cultural scene image
+      selected: false
+    },
+    {
+      id: 'culinary',
+      title: 'Culinary Journey',
+      subtitle: 'Flavors & gastronomy',
+      image: '/images/culinary.jpg', // Food image
+      selected: false
+    },
+    {
+      id: 'artistic',
+      title: 'Artistic Legacy',
+      subtitle: 'Museums & galleries',
+      image: '/images/artistic.jpg', // Art/museum image
+      selected: false
+    },
+    {
+      id: 'natural',
+      title: 'Natural Wonders',
+      subtitle: 'Parks & landscapes',
+      image: '/images/natural.jpg', // Nature/landscape image
+      selected: false
+    },
+    {
+      id: 'evening',
+      title: 'Evening Tales',
+      subtitle: 'After dark stories',
+      image: '/images/evening.jpg', // Night scene image
+      selected: false
+    },
+    {
+      id: 'local',
+      title: 'Local Markets',
+      subtitle: 'Artisan crafts & goods',
+      image: '/images/markets.jpg', // Market/shop image
+      selected: false
+    }
+  ]
+  
+  return (
+    <div>
+      <div className="flex items-center justify-center gap-3 mb-12">
+        <Heart className="w-6 h-6 text-orange-500" />
+        <h2 className="text-3xl font-bold text-gray-900">What draws your curiosity?</h2>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {interests.map((interest) => (
+          <InterestCard key={interest.id} {...interest} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const InterestCard = ({ id, title, subtitle, image, selected, onToggle }) => (
+  <div
+    className="group cursor-pointer transition-all hover:transform hover:scale-105"
+    onClick={() => onToggle(id)}
+  >
+    {/* Circular Image */}
+    <div className={`relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 transition-all ${
+      selected 
+        ? 'border-orange-500 shadow-lg shadow-orange-200' 
+        : 'border-white shadow-md group-hover:border-orange-300'
+    }`}>
+      <img 
+        src={image} 
+        alt={title}
+        className="w-full h-full object-cover transition-transform group-hover:scale-110"
+      />
+      {selected && (
+        <div className="absolute inset-0 bg-orange-500/20 flex items-center justify-center">
+          <Check className="w-6 h-6 text-white bg-orange-500 rounded-full p-1" />
+        </div>
+      )}
+    </div>
+    
+    {/* Text */}
+    <div className="text-center">
+      <h3 className="font-bold text-gray-900 mb-1">{title}</h3>
+      <p className="text-sm text-gray-600">{subtitle}</p>
+    </div>
+  </div>
+)
+Narrative Style Section with Avatar Cards
+tsx// components/NarrativeStyleSection.tsx
+const NarrativeStyleSection = () => {
+  const styles = [
+    {
+      id: 'scholarly',
+      name: 'Scholarly Guide',
+      description: 'Educational & detailed insights',
+      subtitle: 'Like a knowledgeable professor',
+      avatar: '/images/scholarly-avatar.jpg',
+      selected: true
+    },
+    {
+      id: 'friendly',
+      name: 'Friendly Companion',
+      description: 'Warm & conversational',
+      subtitle: 'Like a local friend',
+      avatar: '/images/friendly-avatar.jpg',
+      selected: false
+    },
+    {
+      id: 'storyteller',
+      name: 'Master Storyteller',
+      description: 'Narrative & immersive tales',
+      subtitle: 'Like an old traveler',
+      avatar: '/images/storyteller-avatar.jpg',
+      selected: false
+    },
+    {
+      id: 'witty',
+      name: 'Witty Raconteur',
+      description: 'Light-hearted & amusing',
+      subtitle: 'Like a charming guide',
+      avatar: '/images/witty-avatar.jpg',
+      selected: false
+    }
+  ]
+  
+  return (
+    <div>
+      <div className="flex items-center justify-center gap-3 mb-12">
+        <Mic className="w-6 h-6 text-orange-500" />
+        <h2 className="text-3xl font-bold text-gray-900">Choose your narrative style</h2>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {styles.map((style) => (
+          <NarrativeCard key={style.id} {...style} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const NarrativeCard = ({ id, name, description, subtitle, avatar, selected, onToggle }) => (
+  <div
+    className="group cursor-pointer transition-all hover:transform hover:scale-105"
+    onClick={() => onToggle(id)}
+  >
+    {/* Avatar with Selection Indicator */}
+    <div className="relative w-24 h-24 mx-auto mb-4">
+      <img 
+        src={avatar} 
+        alt={name}
+        className="w-full h-full rounded-full object-cover shadow-lg"
+      />
+      {selected && (
+        <div className="absolute -top-1 -right-1 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
+          <Check className="w-4 h-4 text-white" />
+        </div>
+      )}
+    </div>
+    
+    {/* Text Content */}
+    <div className="text-center">
+      <h3 className="font-bold text-gray-900 mb-1">{name}</h3>
+      <p className="text-sm text-gray-600 mb-2">{description}</p>
+      <p className="text-xs text-gray-500 italic">{subtitle}</p>
+    </div>
+  </div>
+)
+Pace Section with Slider
+tsx// components/PaceSection.tsx
+const PaceSection = () => {
+  const [duration, setDuration] = useState(15)
+  
+  return (
+    <div>
+      <div className="flex items-center justify-center gap-3 mb-12">
+        <Clock className="w-6 h-6 text-orange-500" />
+        <h2 className="text-3xl font-bold text-gray-900">Set your pace</h2>
+      </div>
+      
+      <div className="max-w-2xl mx-auto">
+        {/* Duration Display */}
+        <div className="text-center mb-8">
+          <div className="text-6xl font-bold text-orange-500 mb-2">{duration}</div>
+          <div className="text-xl text-gray-600">minutes</div>
+        </div>
+        
+        {/* Slider */}
+        <div className="relative mb-8">
+          <input
+            type="range"
+            min="5"
+            max="60"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, #E87A47 0%, #E87A47 ${((duration - 5) / 55) * 100}%, #E5E7EB ${((duration - 5) / 55) * 100}%, #E5E7EB 100%)`
+            }}
+          />
+          <div 
+            className="absolute top-0 w-4 h-4 bg-orange-500 rounded-full transform -translate-y-1 -translate-x-2 shadow-lg"
+            style={{ left: `${((duration - 5) / 55) * 100}%` }}
+          ></div>
+        </div>
+        
+        {/* Labels */}
+        <div className="flex justify-between text-sm text-gray-500">
+          <span>Quick glimpse</span>
+          <span>Deep exploration</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+Voice Selection Section
+tsx// components/VoiceSection.tsx
+const VoiceSection = () => {
+  const voices = [
+    {
+      id: 'nova',
+      name: 'Nova',
+      description: 'Clear & refined',
+      personality: 'Neutral',
+      avatar: '/images/nova-avatar.jpg',
+      selected: true
+    },
+    {
+      id: 'alloy',
+      name: 'Alloy',
+      description: 'Warm & inviting',
+      personality: 'Friendly',
+      avatar: '/images/alloy-avatar.jpg',
+      selected: false
+    },
+    {
+      id: 'echo',
+      name: 'Echo',
+      description: 'Deep & resonant',
+      personality: 'Authoritative',
+      avatar: '/images/echo-avatar.jpg',
+      selected: false
+    },
+    {
+      id: 'shimmer',
+      name: 'Shimmer',
+      description: 'Bright & energetic',
+      personality: 'Vibrant',
+      avatar: '/images/shimmer-avatar.jpg',
+      selected: false
+    }
+  ]
+  
+  return (
+    <div>
+      <div className="flex items-center justify-center gap-3 mb-12">
+        <Volume2 className="w-6 h-6 text-orange-500" />
+        <h2 className="text-3xl font-bold text-gray-900">Select your guide's voice</h2>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {voices.map((voice) => (
+          <VoiceCard key={voice.id} {...voice} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const VoiceCard = ({ id, name, description, personality, avatar, selected, onToggle }) => (
+  <div
+    className="group cursor-pointer transition-all hover:transform hover:scale-105"
+    onClick={() => onToggle(id)}
+  >
+    {/* Avatar with Selection */}
+    <div className="relative w-24 h-24 mx-auto mb-4">
+      <img 
+        src={avatar} 
+        alt={name}
+        className="w-full h-full rounded-full object-cover shadow-lg"
+      />
+      {selected && (
+        <div className="absolute -top-1 -right-1 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
+          <Check className="w-4 h-4 text-white" />
+        </div>
+      )}
+    </div>
+    
+    {/* Content */}
+    <div className="text-center">
+      <h3 className="font-bold text-gray-900 mb-1">{name}</h3>
+      <p className="text-sm text-gray-600 mb-1">{description}</p>
+      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+        personality === 'Neutral' ? 'bg-gray-100 text-gray-700' :
+        personality === 'Friendly' ? 'bg-blue-100 text-blue-700' :
+        personality === 'Authoritative' ? 'bg-purple-100 text-purple-700' :
+        'bg-yellow-100 text-yellow-700'
+      }`}>
+        {personality}
+      </span>
+    </div>
+  </div>
+)
+Start Journey Section
+tsx// components/StartJourneySection.tsx
+const StartJourneySection = () => {
+  const [hasSelection, setHasSelection] = useState(false)
+  
+  return (
+    <div className="text-center pt-12">
+      <Button 
+        className={`px-12 py-4 rounded-2xl font-semibold text-lg shadow-lg transition-all ${
+          hasSelection 
+            ? 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow-xl transform hover:scale-105' 
+            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+        }`}
+        disabled={!hasSelection}
+      >
+        Begin Your Journey
+      </Button>
+      
+      {!hasSelection && (
+        <p className="text-gray-500 mt-4">
+          Please select at least one interest to continue your adventure
+        </p>
+      )}
+    </div>
+  )
+}
+Key Implementation Changes:
+1. Circular Interest Cards: Replace rectangular cards with circular image-based cards
+2. Avatar-Based Styles: Use character avatars for narrative styles and voices
+3. Large Number Display: Show duration as a large centered number
+4. Visual Slider: Custom-styled range slider with orange fill
+5. Personality Tags: Add colored badges for voice personalities
+6. Selection Indicators: Orange checkmark circles for selected items
+7. Hover Effects: Scale transforms and shadow changes on hover
+8. Warm Background: Use cream/warm background color throughout
+CSS Customizations Needed:
+css/* Add to globals.css for custom slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #E87A47;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(232, 122, 71, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #E87A47;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(232, 122, 71, 0.3);
+}
+This updated specification transforms the customization page to match your new mockup exactly, with circular cards, avatars, and the warm, inviting aesthetic shown in the design.

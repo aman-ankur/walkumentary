@@ -21,7 +21,7 @@
 
 const nextConfig = {
   images: {
-    domains: ['supabase.co', 'lh3.googleusercontent.com'],
+    domains: ['supabase.co', 'lh3.googleusercontent.com', 'images.unsplash.com'],
     formats: ['image/webp', 'image/avif'],
   },
   env: {

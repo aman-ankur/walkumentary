@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walkumentary – Customize Tour (V2 Mock)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: { extend: { colors: { orange: {50:'#FFF7ED',500:'#E87A47',600:'#D16A37'}, warm:{50:'#FEFBF8'} } } }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>body{font-family:'Inter',sans-serif;background:#FEFBF8}</style>
+  </head>
+  <body>
+    <header class="py-4 bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
+        <h1 class="font-semibold">Walkumentary</h1>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-16">
+      <!-- Page Header -->
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 mb-8">
+          <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
+          <span class="text-orange-700 font-medium text-sm">CRAFT YOUR JOURNEY</span>
+        </div>
+        <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">Customize Your<br /><span class="text-orange-500">Audio Adventure</span></h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Exploring <span class="text-orange-500 font-semibold">Barcelona</span> — Tell us what captivates you, and we'll weave together a personalized narrative of discovery.</p>
+      </div>
+
+      <!-- Interests Section -->
+      <section class="mb-20">
+        <div class="flex items-center justify-center gap-3 mb-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7" /></svg>
+          <h2 class="text-3xl font-bold text-gray-900">What draws your curiosity?</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <!-- example card -->
+          <div class="group cursor-pointer transition-all hover:scale-105 text-center">
+            <div class="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white shadow-md">
+              <img src="https://source.unsplash.com/200x200?history" class="w-full h-full object-cover" />
+            </div>
+            <h3 class="font-bold mb-1">Historical Tales</h3>
+            <p class="text-sm text-gray-600">Ancient stories & heritage</p>
+          </div>
+          <!-- repeat others -->
+        </div>
+      </section>
+
+      <!-- Narrative Style Section -->
+      <section class="mb-20">
+        <div class="flex items-center justify-center gap-3 mb-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 3v12l5-5m0 0l5 5V3" /></svg>
+          <h2 class="text-3xl font-bold text-gray-900">Choose your narrative style</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div class="group cursor-pointer transition-all hover:scale-105 text-center">
+            <div class="relative w-24 h-24 mx-auto mb-4">
+              <img src="https://source.unsplash.com/200x200?person" class="w-full h-full rounded-full object-cover shadow-lg" />
+            </div>
+            <h3 class="font-bold mb-1">Scholarly Guide</h3>
+            <p class="text-sm text-gray-600">Educational & detailed</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pace Section -->
+      <section class="mb-20 text-center">
+        <div class="flex items-center justify-center gap-3 mb-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3"/></svg>
+          <h2 class="text-3xl font-bold text-gray-900">Set your pace</h2>
+        </div>
+        <div class="text-6xl font-bold text-orange-500 mb-2">15</div>
+        <div class="text-xl text-gray-600 mb-8">minutes</div>
+        <input type="range" min="5" max="60" value="15" class="w-full max-w-2xl mx-auto h-2 bg-gray-200 rounded-lg appearance-none" />
+      </section>
+
+      <!-- Voice Section -->
+      <section class="mb-20">
+        <div class="flex items-center justify-center gap-3 mb-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 10l4 2v2l-4 2v4l-12-9 12-9v4z"/></svg>
+          <h2 class="text-3xl font-bold text-gray-900">Select your guide's voice</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div class="group cursor-pointer text-center hover:scale-105 transition-all">
+            <div class="relative w-24 h-24 mx-auto mb-4">
+              <img src="https://source.unsplash.com/200x200?face" class="w-full h-full rounded-full object-cover shadow-lg" />
+            </div>
+            <h3 class="font-bold mb-1">Nova</h3>
+            <p class="text-sm text-gray-600 mb-1">Clear & refined</p>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Neutral</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Start Button -->
+      <div class="text-center pt-12">
+        <button class="bg-gray-200 text-gray-500 cursor-not-allowed px-12 py-4 rounded-2xl font-semibold text-lg shadow-lg">Begin Your Journey</button>
+        <p class="text-gray-500 mt-4">Please select at least one interest to continue your adventure</p>
+      </div>
+    </main>
+  </body>
+</html> 

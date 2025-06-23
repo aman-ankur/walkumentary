@@ -7,6 +7,7 @@ import { LocationCard } from "@/components/location/LocationCard";
 import { TourGenerator } from "@/components/tour/TourGenerator";
 import { TourList } from "@/components/tour/TourList";
 import { useAuthContext } from "@/components/auth/AuthProvider";
+import { useRouter } from "next/navigation";
 import { LocationResponse } from "@/lib/types";
 import { api } from "@/lib/api";
 import { Header } from "@/components/Header";
@@ -18,18 +19,28 @@ export default function HomePage() {
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const [tourRefreshTrigger, setTourRefreshTrigger] = useState(0);
   const { user, loading } = useAuthContext();
+  const router = useRouter();
 
   const handleLocationSelect = (location: LocationResponse) => {
     setSelectedLocation(location);
     setShowTourGenerator(false); // Reset tour generator when new location is selected
   };
 
-  const handleGenerateTour = () => {
+  const handleGenerateTour = async () => {
     if (!user) {
       alert('Please sign in to generate AI tours!');
       return;
     }
-    setShowTourGenerator(true);
+    if (!selectedLocation?.id) {
+      try {
+        const stored = await api.storeExternalLocation(selectedLocation);
+        let locId = stored.id;
+        router.push(`/customize?location_id=${locId}`);
+      } catch (err: any) {
+        alert(err.message || 'Failed to create location');
+        return;
+      }
+    }
   };
 
   const handleTourGenerated = (tourId: string) => {

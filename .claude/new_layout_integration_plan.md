@@ -15,7 +15,13 @@ The new layout introduces a warmer orange theme (`#E87A47`), re-imagined page st
 | 3 | **Landing Page** | • Create `HeroSection`, `SearchSection`, `PopularDestinations` components<br>• Assemble in `src/app/page.tsx` (landing) | `frontend/src/components/landing/*` |
 | 4 | **Features Page** | • Build `FeaturesHero`, `AudioPreviewCard`, `FeaturesGrid` components<br>• New route `/features` page | `frontend/src/app/features/page.tsx` |
 | 5 | **Audio Player Page** | • Re-skin existing `TourPlayer` page: map sections to `MapViewCard`, `AudioPlayerCard`, `NowPlayingCard` | `frontend/src/app/tour/[id]/page.tsx`, components |
-| 6 | **Customization Flow** | • Implement pages/components: `InterestsSection`, `ToneStyleSection`, `DurationSection`, `VoiceSection`, `StartTourSection` | `frontend/src/app/customize/page.tsx` |
+| 6 | **Customization Flow** | • Implement `/customize` route with new warm-cream layout (see mock_customization_v2). Components:
+  * `InterestsSection` – circular image cards (select multiple).
+  * `NarrativeStyleSection` – avatar cards for guide persona.
+  * `PaceSection` – big numeric display + orange range slider.
+  * `VoiceSection` – avatar cards with personality badges.
+  * `StartJourneySection` – CTA disabled until at least one interest chosen.
+• Persist selections in local state; POST to `/tours/generate` with extra fields but keep optional behind flag until backend ready. | `frontend/src/app/customize/page.tsx`, `frontend/src/components/customize/*` |
 | 7 | **Polish & QA** | • Update Jest snapshots, visual regression tests<br>• Lighthouse & a11y audits<br>• Code cleanup & doc updates | tests, CI |
 
 ## 🔄 Mapping Current ➜ New Components
@@ -61,8 +67,13 @@ The new layout introduces a warmer orange theme (`#E87A47`), re-imagined page st
 * Swap in new `AudioPlayerCard`, keep hooks/state.
 
 ### Phase 6 – Customization Flow
-* New `customize` route; use server actions or client side state for selections.
-* Reuse backend endpoints for tour generation.
+* Implement `/customize` route with new warm-cream layout (see mock_customization_v2). Components:
+  * `InterestsSection` – circular image cards (select multiple).
+  * `NarrativeStyleSection` – avatar cards for guide persona.
+  * `PaceSection` – big numeric display + orange range slider.
+  * `VoiceSection` – avatar cards with personality badges.
+  * `StartJourneySection` – CTA disabled until at least one interest chosen.
+* Persist selections in local state; POST to `/tours/generate` with extra fields but keep optional behind flag until backend ready. | `frontend/src/app/customize/page.tsx`, `frontend/src/components/customize/*` |
 
 ### Phase 7 – Polish & QA
 * Snapshot update: `pnpm test -- -u`.
