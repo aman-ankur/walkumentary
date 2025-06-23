@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walkumentary – UI Mock</title>
+    <!-- Tailwind CDN for mock purposes only -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --midnight-navy: #12263a;
+        --champagne-beige: #f7f1e8;
+        --wanderlust-gold: #ce9c46;
+        --cloud-mist: #eef3f9;
+        --sky-haze: #fafcff;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(180deg, var(--cloud-mist) 0%, var(--sky-haze) 100%);
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: 'Playfair Display', serif;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-[var(--midnight-navy)]">
+    <!-- Header -->
+    <header class="py-6">
+      <div class="max-w-4xl mx-auto flex items-center justify-between px-4">
+        <div>
+          <h1 class="text-3xl font-semibold">Walkumentary</h1>
+          <p class="text-sm text-[var(--midnight-navy)/70]">Discover amazing places around you with AI-powered tours</p>
+        </div>
+        <button class="px-4 py-2 bg-[var(--midnight-navy)] text-white rounded-full hover:bg-opacity-90">Sign&nbsp;out</button>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 space-y-10 pb-20">
+      <!-- Backend status -->
+      <div class="text-center text-sm text-green-600">✅ Backend connected — Welcome, alice@example.com! You can generate AI tours.</div>
+
+      <!-- Search Locations -->
+      <section class="bg-[var(--champagne-beige)]/70 rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-xl font-semibold">Find Locations</h2>
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="Search for museums, landmarks, parks…"
+            class="w-full rounded-full border border-[var(--midnight-navy)/20] py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[var(--wanderlust-gold)]"
+          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-[var(--midnight-navy)/60]"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18a7.5 7.5 0 006.15-3.35z" />
+          </svg>
+        </div>
+      </section>
+
+      <!-- GPS Discovery -->
+      <section class="bg-[var(--champagne-beige)]/70 rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-xl font-semibold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-12.75a.75.75 0 011.5 0v3.25a.75.75 0 01-.75.75h-3.25a.75.75 0 110-1.5h2.5V5.25z" clip-rule="evenodd" />
+          </svg>
+          GPS Location Detection
+        </h2>
+        <button class="flex items-center gap-2 px-5 py-3 bg-[var(--midnight-navy)] text-white rounded-full hover:opacity-90">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.562 4.789a1 1 0 00.95.69h5.033c.97 0 1.371 1.24.588 1.81l-4.066 2.96a1 1 0 00-.364 1.118l1.562 4.79c.3.92-.755 1.688-1.538 1.118l-4.067-2.96a1 1 0 00-1.176 0l-4.067 2.96c-.782.57-1.837-.198-1.538-1.118l1.562-4.79a1 1 0 00-.364-1.118l-4.066-2.96c-.784-.57-.382-1.81.588-1.81h5.033a1 1 0 00.95-.69l1.562-4.789z" />
+          </svg>
+          Detect Location
+        </button>
+      </section>
+
+      <!-- Tours -->
+      <section class="space-y-6">
+        <h2 class="text-xl font-semibold flex items-center gap-2">
+          📜 Your Tours
+        </h2>
+
+        <!-- Single Tour Card -->
+        <article class="bg-[var(--champagne-beige)]/70 rounded-lg shadow p-6 space-y-6">
+          <header class="space-y-2">
+            <h3 class="text-lg font-semibold">Unveiling Lady Liberty: A Journey Through History and Culture</h3>
+            <div class="flex gap-2">
+              <span class="px-3 py-1 text-xs bg-[var(--wanderlust-gold)]/20 text-[var(--midnight-navy)] rounded-full">history</span>
+              <span class="px-3 py-1 text-xs bg-[var(--wanderlust-gold)]/20 text-[var(--midnight-navy)] rounded-full">culture</span>
+            </div>
+          </header>
+
+          <!-- Audio Player Mock -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span>0:08</span>
+              <span>4:12</span>
+            </div>
+            <div class="w-full h-2 bg-white rounded-full overflow-hidden">
+              <div class="h-full bg-[var(--wanderlust-gold)]" style="width: 20%"></div>
+            </div>
+            <div class="flex items-center gap-6">
+              <button class="px-3 py-2 bg-white rounded-full shadow">⏪</button>
+              <button class="w-14 h-14 bg-[var(--midnight-navy)] text-white rounded-full text-2xl flex items-center justify-center shadow">▶</button>
+              <button class="px-3 py-2 bg-white rounded-full shadow">⏩</button>
+              <div class="flex items-center gap-2 text-sm">
+                Speed:
+                <button class="px-2 py-1 bg-white rounded text-[var(--midnight-navy)]">1x</button>
+                <button class="px-2 py-1 bg-white rounded text-[var(--midnight-navy)]/60">1.5x</button>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm leading-relaxed">
+            Welcome to your audio tour of the Statue of Liberty! Today, we'll embark on a captivating journey through time and culture, discovering the stories that make this iconic monument a symbol of freedom a...
+          </p>
+
+          <div class="grid grid-cols-2 gap-4">
+            <button class="py-3 border border-[var(--midnight-navy)] text-[var(--midnight-navy)] rounded-lg hover:bg-[var(--midnight-navy)] hover:text-white transition-colors">Download</button>
+            <button class="py-3 border border-red-500 text-red-500 rounded-lg hover:bg-red-50">Close</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html> 

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walkumentary – Features (Mock)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { orange: {50:'#FFF7ED',500:'#E87A47',600:'#D16A37'} }
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>body{font-family:'Inter',sans-serif}</style>
+  </head>
+  <body>
+    <!-- Hero -->
+    <section class="bg-gradient-to-b from-orange-50 to-white py-20 text-center">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 mb-8">
+          <span class="text-orange-700 font-medium text-sm">WHERE STORIES COME ALIVE</span>
+        </div>
+        <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">Discover the Soul<br />of <span class="text-orange-500">Every Place</span></h1>
+        <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">Transform your travels into immersive journeys of discovery. Let our AI-powered audio guides unveil the hidden stories, forgotten tales, and timeless charm of every destination.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <button class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl font-medium text-lg">Begin Your Journey</button>
+          <button class="border border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-medium text-lg">Watch Preview</button>
+        </div>
+        <!-- Audio Preview Card -->
+        <div class="max-w-2xl mx-auto">
+          <div class="bg-gradient-to-br from-gray-900 via-gray-800 to-amber-900 rounded-3xl p-12 text-white shadow-2xl">
+            <div class="text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto mb-6 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-2v13" />
+              </svg>
+              <h3 class="text-2xl font-bold mb-3">Immersive Audio Experience</h3>
+              <p class="text-white/80 text-lg">Where every street tells a story</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="py-20 bg-white">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-16">
+          <div class="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-full border border-orange-200 mb-6">
+            <span class="text-orange-700 font-medium text-sm">POWERED BY INNOVATION</span>
+          </div>
+          <h2 class="text-4xl font-bold mb-4">The Future of Travel<br />Storytelling</h2>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">Experience destinations through the lens of cutting-edge AI technology, designed to make every journey unforgettable.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="text-center p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18a7.5 7.5 0 006.15-3.35z"/></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Intelligent Discovery</h3>
+            <p class="text-gray-600">Find hidden gems through smart search, GPS detection, or AI-powered visual recognition</p>
+          </div>
+          <div class="text-center p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01"/></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Personalized Narratives</h3>
+            <p class="text-gray-600">Bespoke audio stories crafted by advanced AI, tailored to your interests and curiosity</p>
+          </div>
+          <div class="text-center p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-2v13"/></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Premium Audio Experience</h3>
+            <p class="text-gray-600">Natural, expressive narration that brings every location to life with cinematic quality</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html> 
