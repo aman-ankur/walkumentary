@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walkumentary – Landing (Mock)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              orange: {
+                50: '#FFF7ED',
+                500: '#E87A47',
+                600: '#D16A37'
+              },
+              warm: {
+                50: '#FEFBF8'
+              }
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background: #FEFBF8;
+      }
+    </style>
+  </head>
+  <body class="text-gray-900">
+    <!-- Header -->
+    <header class="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+            <!-- MapPin icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12 17.657 7.343 16.243 5.929 10.172 12l6.071 6.071z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.343 16.657L10.586 12 6.343 7.343 7.757 5.929 13.828 12l-6.071 6.071z" />
+            </svg>
+          </div>
+          <span class="text-xl font-semibold">Walkumentary</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="#features" class="text-gray-600 hover:text-gray-900 transition-colors">Features</a>
+          <a href="#how" class="text-gray-600 hover:text-gray-900 transition-colors">How it Works</a>
+        </nav>
+        <button class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium">Get Started</button>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-b from-orange-50 to-white py-20">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <div class="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 mb-8">
+          <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
+          <span class="text-orange-700 font-medium text-sm">BEGIN YOUR JOURNEY</span>
+        </div>
+        <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">Where shall we explore?</h1>
+        <p class="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">Discover the hidden stories and timeless charm of places around the world</p>
+        <!-- Search Section -->
+        <div class="max-w-2xl mx-auto">
+          <div class="relative mb-8">
+            <div class="flex items-center bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 ml-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" placeholder="Search for a destination, landmark, or address..." class="flex-1 px-4 py-4 text-gray-700 placeholder-gray-400 focus:outline-none" />
+              <button class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-medium">Search</button>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 mb-8">
+            <div class="flex-1 h-px bg-gray-200"></div>
+            <span class="text-gray-400 font-medium">OR</span>
+            <div class="flex-1 h-px bg-gray-200"></div>
+          </div>
+          <div class="flex gap-4 mb-12">
+            <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 rounded-xl font-medium flex items-center justify-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>Use Current Location</button>
+            <button class="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-4 px-6 rounded-xl font-medium flex items-center justify-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>Identify with Camera</button>
+          </div>
+          <!-- Popular Destinations -->
+          <div class="text-center">
+            <h3 class="text-xl font-semibold mb-6">Popular Destinations</h3>
+            <div class="space-y-4">
+              <div class="flex flex-wrap justify-center gap-3">
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Paris</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Rome</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Barcelona</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Amsterdam</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Prague</button>
+              </div>
+              <div class="flex flex-wrap justify-center gap-3">
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Vienna</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Florence</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Berlin</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">London</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Venice</button>
+              </div>
+              <div class="flex flex-wrap justify-center gap-3">
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Budapest</button>
+                <button class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Lisbon</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </body>
+</html> 

@@ -50,6 +50,15 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        /* Custom palette for UI v2 */
+        orange: {
+          50: "#FFF7ED",
+          500: "#E87A47",
+          600: "#D16A37",
+        },
+        warm: {
+          50: "#FEFBF8",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

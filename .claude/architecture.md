@@ -33,8 +33,8 @@
             │PostgreSQL│    │Storage │   │• OpenAI    │
             │          │    │        │   │• Nominatim │
             │• Users   │    │• Images│   │• Leaflet   │
-            │• Tours   │    │• Audio │   │            │
-            │• Cache   │    │        │   │            │
+            │• Tours   │    │• Audio │   │• Audio     │
+            │• Cache   │    │        │   │• Audio     │
             └──────────┘    └────────┘   └────────────┘
 ```
 
@@ -411,6 +411,13 @@ jobs:
     - Railway deployment
 ```
 
+### 7.4 Evening Patch – Guaranteed Playback Flow (2025-06-24)
+* `TourStatusTracker` now waits for **status == ready** and a non-null `audio_url` before redirecting.
+* `Customize → Player` redirect happens only when MP3 is confirmed, eliminating autoplay-blocking quirks.
+* Player page pre-loads the track (no autoplay); first user gesture triggers `audio.play()` reliably.
+* Added `loadTrack()` vs `playTrack()` distinction in `AudioPlayerProvider`.
+* Redis cache layer now JSON-serialises dict/list values and UTF-8 decodes bytes on read, fixing `'bytes' object has no attribute ...` errors in usage tracking.
+
 ## 8. Monitoring & Maintenance
 
 ### 8.1 Application Monitoring
@@ -438,5 +445,46 @@ jobs:
 - **Database Optimization:** Proper indexing and query optimization
 - **API Rate Limiting:** Prevent abuse and ensure fair usage
 - **Background Processing:** Async task queue for heavy operations
+
+## 2025-06-24  Backend & UI Refactor – Audio Generation Pipeline
+
+The following improvements were implemented to streamline audio-tour delivery, reduce latency, and simplify the streaming path:
+
+### 1.  Tour Generation State Machine
+| Phase | Status value | Milestone log | Client behaviour |
+|-------|--------------|--------------|------------------|
+| 1 | `generating` | _Tour generation started_ | Tracker shows 0-50 % |
+| 2 | `content_ready` | **LLM content generated** (chars, provider, model) | Tracker jumps to 80 %; UI displays text but **does not** attempt playback |
+| 3 | `ready` | **TTS generated** (ms, bytes) & _Tour generation completed_ | Tracker hits 100 %, player auto-loads MP3 |
+
+### 2.  Absolute Audio URLs
+`tour.audio_url` now contains a fully-qualified link:
+```text
+{settings.API_BASE_URL}/tours/<tour-id>/audio
+```
+Ensures the PWA fetches the file directly rather than proxying through Next.js.
+
+### 3.  Public Streaming Endpoint
+`GET /tours/{tour_id}/audio` (FastAPI)
+* Reads Base-64 MP3 from Redis key `audio:tour:<id>`.
+* Returns `200 audio/mpeg` with `Accept-Ranges: bytes`.
+* No authentication → suitable for the `<audio>` tag.
+
+### 4.  Front-end Integration
+* `TourStatusTracker` now calls `onTourReady()` twice:
+  * at `content_ready` – to show text preview.
+  * at `ready` – to pass the final `audio_url`.
+* `AudioPlayerProvider` only invokes `playTrack` if `audio_url` is non-null (prevents `/null` 404).
+
+### 5.  Logging & Noise Reduction
+* Root logger: `HH:MM:SS LEVEL module: message`.
+* Milestone INFO logs: LLM content, TTS success, cache hits.
+* Third-party libraries (`sqlalchemy.engine`, `httpx`, `openai`, `uvicorn.access`…) downgraded to WARNING.
+
+### 6.  Performance Tweaks
+* TTS speed `1.0 → 1.2` (≈20 % faster).
+* Text truncated to 2 500 chars (≈12 min speech) before TTS.
+
+---
 
 This architecture provides a solid foundation for rapid MVP development while maintaining the flexibility to scale and add features as the product evolves.

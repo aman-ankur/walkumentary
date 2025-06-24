@@ -10,7 +10,7 @@ from sqlalchemy import select, text, func
 
 from models.location import Location
 from schemas.location import LocationResponse
-from services.cache_service import CacheService
+from services.cache_service import cache_service
 import uuid
 
 class LocationService:
@@ -18,7 +18,7 @@ class LocationService:
     
     def __init__(self):
         self.base_url = "https://nominatim.openstreetmap.org"
-        self.cache = CacheService()
+        self.cache = cache_service
         self.timeout = 10
         self.headers = {
             "User-Agent": "Walkumentary/1.0 (contact@walkumentary.app)"
@@ -49,7 +49,7 @@ class LocationService:
         cache_key = f"location_search:{query}:{coordinates}:{radius}:{limit}"
         
         # Try cache first
-        cached_result = await self.cache.get(cache_key)
+        cached_result = await self.cache.get_json(cache_key)
         if cached_result:
             return cached_result
         
@@ -111,7 +111,7 @@ class LocationService:
             }
             
             # Cache the result for 1 hour
-            await self.cache.set(cache_key, result, ttl=3600)
+            await self.cache.set_json(cache_key, result, ttl=3600)
             
             return result
             
@@ -146,7 +146,7 @@ class LocationService:
         cache_key = f"nearby:{lat}:{lng}:{radius}:{limit}"
         
         # Try cache first
-        cached_result = await self.cache.get(cache_key)
+        cached_result = await self.cache.get_json(cache_key)
         if cached_result:
             return cached_result
         
@@ -226,7 +226,7 @@ class LocationService:
             }
             
             # Cache for 30 minutes (nearby locations change less frequently)
-            await self.cache.set(cache_key, result, ttl=1800)
+            await self.cache.set_json(cache_key, result, ttl=1800)
             
             return result
             

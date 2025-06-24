@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000)
     RELOAD: bool = Field(default=False)
     
+    # Public API base URL (used for absolute links)
+    API_BASE_URL: str = Field(default="http://localhost:8000")
+    
     # Security
     SECRET_KEY: str = Field(..., min_length=32)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
@@ -51,7 +54,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = Field(..., description="Supabase anonymous key")
     
     # Redis
-    REDIS_URL: str = Field(..., description="Redis connection URL")
+    REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis connection URL (defaults to local Redis)")
     REDIS_MAX_CONNECTIONS: int = Field(default=10)
     
     # AI Services

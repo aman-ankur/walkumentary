@@ -1,0 +1,620 @@
+Page 1: Main Landing Page
+Overall Layout & Styling
+typescript// Color Palette
+const colors = {
+  primary: '#E87A47', // Orange/coral
+  primaryHover: '#D16A37',
+  background: '#FEFBF8', // Warm off-white
+  cardBackground: '#FFFFFF',
+  text: '#2C2C2C',
+  textMuted: '#666666',
+  border: '#E5E5E5'
+}
+
+// Typography
+const typography = {
+  heading: 'font-family: Inter, -apple-system, sans-serif; font-weight: 600;',
+  body: 'font-family: Inter, -apple-system, sans-serif; font-weight: 400;',
+  button: 'font-family: Inter, -apple-system, sans-serif; font-weight: 500;'
+}
+Header Component
+tsx// components/Header.tsx
+const Header = () => (
+  <header className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
+    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      {/* Logo */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+          <MapPin className="w-5 h-5 text-white" />
+        </div>
+        <span className="text-xl font-semibold text-gray-900">Walkumentary</span>
+      </div>
+      
+      {/* Navigation */}
+      <nav className="hidden md:flex items-center gap-8">
+        <Link href="/features" className="text-gray-600 hover:text-gray-900 transition-colors">
+          Features
+        </Link>
+        <Link href="/how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">
+          How it Works
+        </Link>
+      </nav>
+      
+      {/* CTA Button */}
+      <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium">
+        Get Started
+      </Button>
+    </div>
+  </header>
+)
+Hero Section
+tsx// components/HeroSection.tsx
+const HeroSection = () => (
+  <section className="bg-gradient-to-b from-orange-50 to-white py-20">
+    <div className="max-w-4xl mx-auto px-6 text-center">
+      {/* Badge */}
+      <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 mb-8">
+        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+        <span className="text-orange-700 font-medium text-sm">BEGIN YOUR JOURNEY</span>
+      </div>
+      
+      {/* Main Heading */}
+      <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+        Where shall we explore?
+      </h1>
+      
+      {/* Subheading */}
+      <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+        Discover the hidden stories and timeless charm of places around the world
+      </p>
+      
+      {/* Search Section */}
+      <SearchSection />
+    </div>
+  </section>
+)
+Search Section Component
+tsx// components/SearchSection.tsx
+const SearchSection = () => (
+  <div className="max-w-2xl mx-auto">
+    {/* Main Search Bar */}
+    <div className="relative mb-8">
+      <div className="flex items-center bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
+        <Search className="w-5 h-5 text-gray-400 ml-4" />
+        <input
+          type="text"
+          placeholder="Search for a destination, landmark, or address..."
+          className="flex-1 px-4 py-4 text-gray-700 placeholder-gray-400 focus:outline-none"
+        />
+        <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-medium">
+          Search
+        </Button>
+      </div>
+    </div>
+    
+    {/* OR Divider */}
+    <div className="flex items-center gap-4 mb-8">
+      <div className="flex-1 h-px bg-gray-200"></div>
+      <span className="text-gray-400 font-medium">OR</span>
+      <div className="flex-1 h-px bg-gray-200"></div>
+    </div>
+    
+    {/* Action Buttons */}
+    <div className="flex gap-4 mb-12">
+      <Button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 rounded-xl font-medium flex items-center justify-center gap-3">
+        <Navigation className="w-5 h-5" />
+        Use Current Location
+      </Button>
+      <Button className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-4 px-6 rounded-xl font-medium flex items-center justify-center gap-3">
+        <Camera className="w-5 h-5" />
+        Identify with Camera
+      </Button>
+    </div>
+    
+    {/* Popular Destinations */}
+    <PopularDestinations />
+  </div>
+)
+Popular Destinations Component
+tsx// components/PopularDestinations.tsx
+const PopularDestinations = () => {
+  const destinations = [
+    ['Paris', 'Rome', 'Barcelona', 'Amsterdam', 'Prague'],
+    ['Vienna', 'Florence', 'Berlin', 'London', 'Venice'],
+    ['Budapest', 'Lisbon']
+  ]
+  
+  return (
+    <div className="text-center">
+      <h3 className="text-xl font-semibold text-gray-900 mb-6">Popular Destinations</h3>
+      <div className="space-y-4">
+        {destinations.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex flex-wrap justify-center gap-3">
+            {row.map((destination) => (
+              <Button
+                key={destination}
+                variant="outline"
+                className="px-4 py-2 rounded-full border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+              >
+                {destination}
+              </Button>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+Page 2: Features Landing Page
+Features Hero Section
+tsx// components/FeaturesHero.tsx
+const FeaturesHero = () => (
+  <section className="bg-gradient-to-b from-orange-50 to-white py-20">
+    <div className="max-w-6xl mx-auto px-6 text-center">
+      {/* Badge */}
+      <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 mb-8">
+        <span className="text-orange-700 font-medium text-sm">WHERE STORIES COME ALIVE</span>
+      </div>
+      
+      {/* Main Heading */}
+      <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+        Discover the Soul<br />
+        of <span className="text-orange-500">Every Place</span>
+      </h1>
+      
+      {/* Subheading */}
+      <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+        Transform your travels into immersive journeys of discovery. Let our AI-powered audio 
+        guides unveil the hidden stories, forgotten tales, and timeless charm of every destination.
+      </p>
+      
+      {/* CTA Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+        <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl font-medium text-lg">
+          Begin Your Journey
+        </Button>
+        <Button variant="outline" className="border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-medium text-lg">
+          Watch Preview
+        </Button>
+      </div>
+      
+      {/* Audio Preview Card */}
+      <AudioPreviewCard />
+    </div>
+  </section>
+)
+Audio Preview Card
+tsx// components/AudioPreviewCard.tsx
+const AudioPreviewCard = () => (
+  <div className="max-w-2xl mx-auto">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-amber-900 rounded-3xl p-12 text-white shadow-2xl">
+      <div className="text-center">
+        <Headphones className="w-16 h-16 mx-auto mb-6 text-white/90" />
+        <h3 className="text-2xl font-bold mb-3">Immersive Audio Experience</h3>
+        <p className="text-white/80 text-lg">Where every street tells a story</p>
+      </div>
+    </div>
+  </div>
+)
+Features Grid Section
+tsx// components/FeaturesGrid.tsx
+const FeaturesGrid = () => (
+  <section className="py-20 bg-white">
+    <div className="max-w-6xl mx-auto px-6">
+      {/* Section Header */}
+      <div className="text-center mb-16">
+        <div className="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-full border border-orange-200 mb-6">
+          <span className="text-orange-700 font-medium text-sm">POWERED BY INNOVATION</span>
+        </div>
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          The Future of Travel<br />Storytelling
+        </h2>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          Experience destinations through the lens of cutting-edge AI technology, designed to 
+          make every journey unforgettable.
+        </p>
+      </div>
+      
+      {/* Features Grid */}
+      <div className="grid md:grid-cols-3 gap-8">
+        <FeatureCard
+          icon={<Search className="w-8 h-8 text-orange-500" />}
+          title="Intelligent Discovery"
+          description="Find hidden gems through smart search, GPS detection, or AI-powered visual recognition"
+        />
+        <FeatureCard
+          icon={<Sparkles className="w-8 h-8 text-orange-500" />}
+          title="Personalized Narratives"
+          description="Bespoke audio stories crafted by advanced AI, tailored to your interests and curiosity"
+        />
+        <FeatureCard
+          icon={<Volume2 className="w-8 h-8 text-orange-500" />}
+          title="Premium Audio Experience"
+          description="Natural, expressive narration that brings every location to life with cinematic quality"
+        />
+      </div>
+    </div>
+  </section>
+)
+
+const FeatureCard = ({ icon, title, description }) => (
+  <div className="text-center p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+    <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+      {icon}
+    </div>
+    <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
+    <p className="text-gray-600 leading-relaxed">{description}</p>
+  </div>
+)
+Page 3: Audio Tour Player
+Audio Player Layout
+tsx// pages/tour/[id].tsx
+const TourPlayerPage = () => (
+  <div className="min-h-screen bg-gray-50">
+    <Header />
+    
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Page Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Audio Tour: Rome</h1>
+        <p className="text-gray-600">Exploring the heart of Berlin's history and culture</p>
+      </div>
+      
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Map Section */}
+        <div className="lg:col-span-2">
+          <MapViewCard />
+        </div>
+        
+        {/* Audio Player Section */}
+        <div className="space-y-6">
+          <AudioPlayerCard />
+          <NowPlayingCard />
+        </div>
+      </div>
+    </div>
+  </div>
+)
+Map View Card
+tsx// components/MapViewCard.tsx
+const MapViewCard = () => (
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[500px]">
+    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
+      <div className="text-center text-gray-500">
+        <Map className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+        <h3 className="text-xl font-semibold mb-2">Interactive Map View</h3>
+        <p className="text-gray-400">(Map integration would go here)</p>
+      </div>
+    </div>
+  </div>
+)
+Audio Player Card
+tsx// components/AudioPlayerCard.tsx
+const AudioPlayerCard = () => {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [progress, setProgress] = useState(0)
+  
+  return (
+    <div className="bg-orange-500 rounded-2xl p-8 text-white shadow-lg">
+      <div className="flex items-center justify-center mb-6">
+        <Map className="w-12 h-12 text-white" />
+      </div>
+      <h3 className="text-xl font-bold text-center mb-2">Berlin Audio Tour</h3>
+      <p className="text-orange-100 text-center text-sm mb-8">Generated by Walkumentary AI</p>
+      
+      {/* Progress Bar */}
+      <div className="flex items-center justify-between text-sm mb-4">
+        <span>0:00</span>
+        <span>15:00</span>
+      </div>
+      <div className="w-full bg-orange-400 rounded-full h-2 mb-6">
+        <div className="bg-white rounded-full h-2" style={{ width: `${progress}%` }}></div>
+      </div>
+      
+      {/* Controls */}
+      <div className="flex items-center justify-center gap-4">
+        <Button variant="ghost" size="sm" className="text-white hover:bg-orange-400">
+          <SkipBack className="w-5 h-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="lg"
+          className="text-white hover:bg-orange-400 w-14 h-14 rounded-full"
+          onClick={() => setIsPlaying(!isPlaying)}
+        >
+          {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+        </Button>
+        <Button variant="ghost" size="sm" className="text-white hover:bg-orange-400">
+          <SkipForward className="w-5 h-5" />
+        </Button>
+      </div>
+      
+      {/* Volume */}
+      <div className="flex items-center gap-3 mt-6">
+        <Volume2 className="w-4 h-4 text-orange-200" />
+        <div className="flex-1 bg-orange-400 rounded-full h-1">
+          <div className="bg-white rounded-full h-1 w-3/4"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+Now Playing Card
+tsx// components/NowPlayingCard.tsx
+const NowPlayingCard = () => (
+  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+    <div className="flex items-center justify-between mb-4">
+      <h4 className="font-semibold text-gray-900">Now Playing</h4>
+      <Heart className="w-5 h-5 text-gray-400" />
+    </div>
+    
+    <h3 className="text-xl font-bold text-orange-500 mb-2">Brandenburg Gate</h3>
+    <p className="text-gray-600">Historic monument and symbol of Berlin</p>
+  </div>
+)
+Page 4: Tour Customization
+Customization Page Layout
+tsx// pages/customize.tsx
+const CustomizePage = () => (
+  <div className="min-h-screen bg-gray-50">
+    <Header />
+    
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      {/* Page Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Customize Your Tour</h1>
+        <p className="text-xl text-gray-600">
+          Exploring: <span className="text-orange-500 font-semibold">Rome</span>
+        </p>
+      </div>
+      
+      <div className="space-y-12">
+        <InterestsSection />
+        <ToneStyleSection />
+        <DurationSection />
+        <VoiceSection />
+        <StartTourSection />
+      </div>
+    </div>
+  </div>
+)
+Interests Section
+tsx// components/InterestsSection.tsx
+const InterestsSection = () => {
+  const interests = [
+    { id: 'history', label: 'History', icon: '🏛️' },
+    { id: 'architecture', label: 'Architecture', icon: '🏗️' },
+    { id: 'culture', label: 'Culture', icon: '🎭' },
+    { id: 'food', label: 'Food & Cuisine', icon: '🍝' },
+    { id: 'art', label: 'Art & Museums', icon: '🎨' },
+    { id: 'nature', label: 'Nature & Parks', icon: '🌳' },
+    { id: 'nightlife', label: 'Nightlife', icon: '🌃' },
+    { id: 'shopping', label: 'Shopping', icon: '🛍️' }
+  ]
+  
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-6">
+        <Heart className="w-5 h-5 text-orange-500" />
+        <h2 className="text-2xl font-bold text-gray-900">What interests you?</h2>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {interests.map((interest) => (
+          <InterestCard key={interest.id} {...interest} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const InterestCard = ({ id, label, icon, selected, onToggle }) => (
+  <div
+    className={`p-6 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-md ${
+      selected 
+        ? 'border-orange-500 bg-orange-50' 
+        : 'border-gray-200 bg-white hover:border-gray-300'
+    }`}
+    onClick={() => onToggle(id)}
+  >
+    <div className="text-center">
+      <div className="text-3xl mb-3">{icon}</div>
+      <div className="font-medium text-gray-900">{label}</div>
+    </div>
+  </div>
+)
+Tone & Style Section
+tsx// components/ToneStyleSection.tsx
+const ToneStyleSection = () => {
+  const styles = [
+    {
+      id: 'informative',
+      title: 'Informative',
+      description: 'Educational and factual',
+      selected: true
+    },
+    {
+      id: 'casual',
+      title: 'Casual',
+      description: 'Friendly and conversational'
+    },
+    {
+      id: 'storytelling',
+      title: 'Storytelling',
+      description: 'Narrative and engaging'
+    },
+    {
+      id: 'humorous',
+      title: 'Humorous',
+      description: 'Light-hearted and fun'
+    }
+  ]
+  
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-6">
+        <Mic className="w-5 h-5 text-orange-500" />
+        <h2 className="text-2xl font-bold text-gray-900">Tone & Style</h2>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {styles.map((style) => (
+          <StyleCard key={style.id} {...style} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const StyleCard = ({ title, description, selected }) => (
+  <div className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+    selected 
+      ? 'border-orange-500 bg-orange-50' 
+      : 'border-gray-200 bg-white hover:border-gray-300'
+  }`}>
+    <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
+    <p className="text-gray-600">{description}</p>
+  </div>
+)
+Duration Section
+tsx// components/DurationSection.tsx
+const DurationSection = () => (
+  <div>
+    <div className="flex items-center gap-2 mb-6">
+      <Clock className="w-5 h-5 text-orange-500" />
+      <h2 className="text-2xl font-bold text-gray-900">Tour Duration</h2>
+    </div>
+    
+    <div className="bg-white rounded-2xl p-8 border border-gray-200">
+      <div className="flex items-center justify-between mb-6">
+        <span className="text-lg font-medium text-gray-900">Duration: 15 minutes</span>
+        <span className="text-gray-500">5-60 minutes</span>
+      </div>
+      
+      <div className="relative">
+        <input
+          type="range"
+          min="5"
+          max="60"
+          defaultValue="15"
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+        />
+        <div className="absolute top-3 left-1/4 w-4 h-4 bg-orange-500 rounded-full transform -translate-x-1/2"></div>
+      </div>
+    </div>
+  </div>
+)
+Voice Selection Section
+tsx// components/VoiceSection.tsx
+const VoiceSection = () => {
+  const voices = [
+    {
+      id: 'nova',
+      name: 'Nova',
+      description: 'Clear and professional',
+      selected: true
+    },
+    {
+      id: 'alloy',
+      name: 'Alloy',
+      description: 'Warm and friendly'
+    },
+    {
+      id: 'echo',
+      name: 'Echo',
+      description: 'Deep and resonant'
+    },
+    {
+      id: 'shimmer',
+      name: 'Shimmer',
+      description: 'Bright and energetic'
+    }
+  ]
+  
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-6">
+        <Volume2 className="w-5 h-5 text-orange-500" />
+        <h2 className="text-2xl font-bold text-gray-900">Voice Selection</h2>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {voices.map((voice) => (
+          <VoiceCard key={voice.id} {...voice} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const VoiceCard = ({ name, description, selected }) => (
+  <div className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+    selected 
+      ? 'border-orange-500 bg-orange-50' 
+      : 'border-gray-200 bg-white hover:border-gray-300'
+  }`}>
+    <h3 className="font-semibold text-gray-900 mb-2">{name}</h3>
+    <p className="text-gray-600">{description}</p>
+  </div>
+)
+Start Tour Section
+tsx// components/StartTourSection.tsx
+const StartTourSection = () => (
+  <div className="text-center pt-8">
+    <Button 
+      className="bg-orange-500 hover:bg-orange-600 text-white px-12 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all"
+      disabled
+    >
+      Start Your Audio Tour
+    </Button>
+    <p className="text-gray-500 mt-4">Please select at least one interest to continue</p>
+  </div>
+)
+Implementation Instructions for Cursor
+Step 1: Update Color Scheme
+bash# Update your tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        orange: {
+          50: '#FFF7ED',
+          500: '#E87A47',
+          600: '#D16A37',
+        },
+        warm: {
+          50: '#FEFBF8',
+        }
+      }
+    }
+  }
+}
+Step 2: Typography Updates
+css/* Add to globals.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+Step 3: Component Priority Order
+
+Header component - Update navigation and styling
+Landing page hero - Complete redesign with search section
+Popular destinations - Add city buttons grid
+Features page - New layout with audio preview card
+Audio player page - Side-by-side map and player layout
+Customization page - Interest selection and tour options
+
+Step 4: Key Design Changes
+
+Rounded corners: Use rounded-2xl for cards, rounded-xl for buttons
+Shadow depth: shadow-lg for cards, shadow-xl for hover states
+Spacing: Generous padding with p-6 to p-12 for sections
+Color scheme: Orange primary (#E87A47), warm backgrounds
+Typography: Inter font family, bold headings, medium weights
+
+Step 5: Mobile Responsiveness
+
+All grids use responsive classes: grid-cols-1 md:grid-cols-2 lg:grid-cols-4
+Buttons stack vertically on mobile: flex-col sm:flex-row
+Text sizes scale: text-3xl md:text-5xl

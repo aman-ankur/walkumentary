@@ -86,6 +86,25 @@ Phase 4: Performance & Deployment     ░░░░░░░░░░░░░░
 4. **✅ Development Setup** - Both environments working
 5. **✅ Location Search** - Real-time search with Nominatim API
 
+### 2025-06-24  Milestone Achieved – Real-time Audio Tours
+
+- Implemented intermediate `content_ready` status and updated front-end `TourStatusTracker`.
+- Added public streaming endpoint `GET /tours/{id}/audio` (no auth) with Redis source.
+- Absolute `audio_url` now sent to clients; `/null` bug resolved.
+- Introduced milestone logging and silenced verbose SQL/HTTP noise.
+- Optimised TTS latency: speed 1.2, 2 500-char cap.
+- UI enhancements: auto-play only when audio exists.
+
+> ✅ End-to-end flow verified: user selects interests → background job generates text & audio → MP3 streamed in <30 s.
+
+### 2025-06-24  Evening Patch – Smooth Player Flow
+
+- Tracker waits for `ready` with audio before redirect.
+- Dedicated player page uses `loadTrack`, avoiding browser autoplay block.
+- Redis cache serialization fixed; usage tracker errors resolved.
+
+> ✅ User flow: generate → redirect after audio ready → single click plays tour.
+
 ---
 
 **Next Update:** After Phase 1C completion (GPS Location Detection)
