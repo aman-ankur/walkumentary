@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walkumentary – Audio Player (Mock v2 – Dark)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <!-- Dark theme mockup notes:
+       • Night-sky gradient background (#0f172a to #1e293b).
+       • Cards use slate-800 backgrounds with slate-700 borders.
+       • Accent color teal-400 for progress / buttons.
+  -->
+  <body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-slate-100">
+    <header class="py-4 bg-slate-800 border-b border-slate-700 sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-6">
+        <h1 class="font-semibold text-teal-400">Walkumentary</h1>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10 lg:py-16">
+      <div class="text-center mb-12">
+        <h1 class="text-3xl font-extrabold mb-2 text-white">Tokyo By Night</h1>
+        <p class="text-slate-400 max-w-2xl mx-auto">
+          Neon lights, street food, and hidden gems of Tokyo after dark.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Map placeholder -->
+        <div class="lg:col-span-2 bg-slate-800 rounded-2xl border border-slate-700 h-[520px] flex items-center justify-center">
+          <div class="text-center text-slate-500 px-8">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto mb-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A2 2 0 013 15.382V5a2 2 0 011.118-1.789l8-4a2 2 0 011.764 0l8 4A2 2 0 0122 5v10.382a2 2 0 01-1.553 1.894L15 20.46"/></svg>
+            <h3 class="text-xl font-semibold mb-1 text-white">Map Coming Soon</h3>
+            <p class="text-sm text-slate-500">Interactive route will display here</p>
+          </div>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Artwork Card -->
+          <div class="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800">
+            <div class="aspect-square relative">
+              <svg viewBox="0 0 400 400" class="w-full h-full" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <linearGradient id="tokyoGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#0ea5e9" />
+                    <stop offset="100%" stop-color="#06b6d4" />
+                  </linearGradient>
+                </defs>
+                <rect width="400" height="400" fill="url(#tokyoGrad)" />
+                <!-- simple skyline -->
+                <rect y="260" width="400" height="140" fill="#0f172a" />
+                <rect x="60" y="210" width="50" height="50" fill="#1e293b" />
+                <rect x="130" y="180" width="70" height="80" fill="#334155" />
+                <rect x="250" y="220" width="40" height="40" fill="#1e293b" />
+                <circle cx="320" cy="80" r="50" fill="#facc15" opacity="0.85" />
+
+                <foreignObject x="20" y="320" width="360" height="60">
+                  <div xmlns="http://www.w3.org/1999/xhtml" class="flex flex-col space-y-1">
+                    <span class="text-white text-lg font-bold leading-none">Tokyo By Night</span>
+                    <span class="text-white/80 text-sm leading-none">Tokyo, Japan</span>
+                  </div>
+                </foreignObject>
+              </svg>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="bg-slate-800 rounded-2xl border border-slate-700 p-8">
+            <!-- progress -->
+            <div class="mb-6">
+              <div class="w-full h-2 bg-slate-700 rounded-full overflow-hidden mb-2"><div class="h-full bg-teal-400 w-2/5"></div></div>
+              <div class="flex justify-between text-xs text-slate-500"><span>5:12</span><span>20:00</span></div>
+            </div>
+
+            <div class="flex items-center justify-center gap-6 mb-6">
+              <button class="p-3 rounded-full hover:bg-slate-700 text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12H3m0 0l3 3m-3-3l3-3m6-6v3.6A9 9 0 1111.4 21"/></svg></button>
+              <button class="p-3 rounded-full hover:bg-slate-700 text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-9-7 9-7v14zM22 19l-9-7 9-7v14z"/></svg></button>
+              <button class="w-16 h-16 rounded-full bg-teal-400 hover:bg-teal-500 text-slate-900 flex items-center justify-center shadow-lg"><svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M5 3v18l15-9L5 3z"/></svg></button>
+              <button class="p-3 rounded-full hover:bg-slate-700 text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l9 7-9 7V5z"/></svg></button>
+              <button class="p-3 rounded-full hover:bg-slate-700 text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12h9m0 0l-3 3m3-3l-3-3m-6-6v3.6A9 9 0 0012 21"/></svg></button>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5l7 7-7 7 0-6H5V11h6V5z"/></svg>
+              <div class="flex-1 h-1 bg-slate-700 rounded-full"><div class="h-full bg-teal-400 w-3/4 rounded-full"></div></div>
+            </div>
+          </div>
+
+          <!-- Now Playing -->
+          <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6">
+            <h4 class="text-base font-medium mb-3 text-white">Now Playing</h4>
+            <h3 class="text-xl font-semibold text-teal-400 mb-1">Shibuya Crossing</h3>
+            <p class="text-sm text-slate-400">World's busiest pedestrian crossing</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html> 
