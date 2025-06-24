@@ -42,6 +42,8 @@ class TourGenerationRequest(BaseModel):
     interests: List[str] = Field(default=[], max_items=5)
     duration_minutes: int = Field(default=30, ge=10, le=180)
     language: str = Field(default="en", pattern="^[a-z]{2}$")
+    narration_style: str = Field(default="conversational", max_length=50)
+    voice: Optional[str] = None
 
 class TourGenerationResponse(BaseModel):
     tour_id: uuid.UUID

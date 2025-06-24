@@ -49,10 +49,27 @@ const SUPPORTED_LANGUAGES = [
   { code: 'zh', name: 'Chinese' }
 ];
 
+const NARRATION_STYLES = [
+  'conversational',
+  'storytelling',
+  'dramatic',
+  'scholarly',
+  'humorous',
+];
+
+const TTS_VOICES = [
+  'alloy',
+  'nova',
+  'echo',
+  'fable',
+];
+
 export function TourGenerator({ location, onTourGenerated, onClose }: TourGeneratorProps) {
   const [selectedInterests, setSelectedInterests] = useState<string[]>(['history', 'culture']);
   const [duration, setDuration] = useState([30]);
   const [language, setLanguage] = useState('en');
+  const [narrationStyle, setNarrationStyle] = useState('conversational');
+  const [voice, setVoice] = useState<string | undefined>(undefined);
   const [isGenerating, setIsGenerating] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<any>(null);
   const [customInterest, setCustomInterest] = useState('');
@@ -65,7 +82,7 @@ export function TourGenerator({ location, onTourGenerated, onClose }: TourGenera
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [selectedInterests, duration[0], language]);
+  }, [selectedInterests, duration[0], language, narrationStyle, voice]);
 
   const getCostEstimate = async () => {
     try {
@@ -82,7 +99,9 @@ export function TourGenerator({ location, onTourGenerated, onClose }: TourGenera
         location_id: locationId,
         interests: selectedInterests,
         duration_minutes: duration[0],
-        language: language
+        language,
+        narration_style: narrationStyle,
+        voice,
       };
 
       const estimate = await api.estimateTourCost(params);
@@ -133,7 +152,9 @@ export function TourGenerator({ location, onTourGenerated, onClose }: TourGenera
         location_id: locationId,
         interests: selectedInterests,
         duration_minutes: duration[0],
-        language: language
+        language,
+        narration_style: narrationStyle,
+        voice,
       };
 
       const response = await api.generateTour(params);
@@ -234,6 +255,40 @@ export function TourGenerator({ location, onTourGenerated, onClose }: TourGenera
               {SUPPORTED_LANGUAGES.map((lang) => (
                 <SelectItem key={lang.code} value={lang.code}>
                   {lang.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Narration Style Selection */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium">Narration Style</label>
+          <Select value={narrationStyle} onValueChange={setNarrationStyle}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select style" />
+            </SelectTrigger>
+            <SelectContent>
+              {NARRATION_STYLES.map((style) => (
+                <SelectItem key={style} value={style}>
+                  {style.charAt(0).toUpperCase() + style.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Voice Selection */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium">Voice</label>
+          <Select value={voice} onValueChange={setVoice}>
+            <SelectTrigger>
+              <SelectValue placeholder="Default voice" />
+            </SelectTrigger>
+            <SelectContent>
+              {TTS_VOICES.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {v}
                 </SelectItem>
               ))}
             </SelectContent>

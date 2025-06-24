@@ -120,7 +120,8 @@ class TourService:
                     location=location,
                     interests=request.interests,
                     duration_minutes=request.duration_minutes,
-                    language=request.language
+                    language=request.language,
+                    narration_style=request.narration_style if hasattr(request, "narration_style") else "conversational",
                 )
             except Exception as e:
                 # Capture stack-trace for easier debugging
@@ -149,7 +150,7 @@ class TourService:
                 audio_data = await asyncio.wait_for(
                     self.ai_service.generate_audio(
                         text=audio_text,
-                        voice=settings.OPENAI_TTS_VOICE,
+                        voice=request.voice if hasattr(request, "voice") and request.voice else settings.OPENAI_TTS_VOICE,
                         speed=1.2,
                     ),
                     timeout=60,
@@ -376,7 +377,7 @@ class TourService:
                         logger.info(f"Regenerating audio for {len(audio_text)} characters")
                         audio_data = await self.ai_service.generate_audio(
                             text=audio_text,
-                            voice=settings.OPENAI_TTS_VOICE,
+                            voice=request.voice if hasattr(request, "voice") and request.voice else settings.OPENAI_TTS_VOICE,
                             speed=1.2
                         )
                         
@@ -449,7 +450,7 @@ class TourService:
             logger.info(f"Generating audio for {len(audio_text)} characters")
             audio_data = await self.ai_service.generate_audio(
                 text=audio_text,
-                voice=settings.OPENAI_TTS_VOICE,
+                voice=request.voice if hasattr(request, "voice") and request.voice else settings.OPENAI_TTS_VOICE,
                 speed=1.2
             )
             
@@ -594,7 +595,8 @@ class TourService:
                 location=location,
                 interests=request.interests,
                 duration_minutes=request.duration_minutes,
-                language=request.language
+                language=request.language,
+                narration_style=request.narration_style if hasattr(request, "narration_style") else "conversational",
             )
             
             # Add audio generation cost estimate

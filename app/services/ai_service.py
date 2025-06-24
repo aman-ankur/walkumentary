@@ -75,6 +75,7 @@ class AIService:
         interests: List[str],
         duration_minutes: int,
         language: str = "en",
+        narration_style: str = "conversational",
         provider: Optional[LLMProvider] = None
     ) -> Dict[str, Any]:
         """
@@ -85,6 +86,7 @@ class AIService:
             interests: List of user interests (max 5)
             duration_minutes: Tour duration (10-180 minutes)
             language: Language code (default: en)
+            narration_style: Style of narration (default: conversational)
             provider: Preferred provider (optional)
             
         Returns:
@@ -94,7 +96,7 @@ class AIService:
         
         # Create deterministic cache key
         cache_key = self._create_content_cache_key(
-            location, interests, duration_minutes, language, provider
+            location, interests, duration_minutes, language, narration_style, provider
         )
         
         # Try cache first
@@ -107,7 +109,7 @@ class AIService:
         # Generate new content with fallback logic
         try:
             content = await self._generate_tour_content_with_provider(
-                location, interests, duration_minutes, language, provider
+                location, interests, duration_minutes, language, narration_style, provider
             )
             
         except Exception as e:
@@ -121,7 +123,7 @@ class AIService:
             
             try:
                 content = await self._generate_tour_content_with_provider(
-                    location, interests, duration_minutes, language, fallback_provider
+                    location, interests, duration_minutes, language, narration_style, fallback_provider
                 )
                 content["metadata"]["fallback_used"] = True
                 content["metadata"]["original_provider"] = provider
@@ -152,12 +154,13 @@ class AIService:
         interests: List[str],
         duration_minutes: int,
         language: str,
+        narration_style: str,
         provider: LLMProvider
     ) -> Dict[str, Any]:
         """Generate content using specific provider"""
         
         # Create token-optimized prompt
-        prompt = self._create_optimized_prompt(location, interests, duration_minutes, language)
+        prompt = self._create_optimized_prompt(location, interests, duration_minutes, language, narration_style)
         
         try:
             if provider == LLMProvider.OPENAI:
@@ -179,6 +182,7 @@ class AIService:
                 "duration_minutes": duration_minutes,
                 "interests": interests,
                 "language": language,
+                "narration_style": narration_style,
                 "fallback_used": False,
             }
             
@@ -228,7 +232,8 @@ class AIService:
         location: Dict[str, Any],
         interests: List[str],
         duration_minutes: int,
-        language: str
+        language: str,
+        narration_style: str
     ) -> str:
         """Create token-optimized prompt for content generation"""
         
@@ -239,6 +244,7 @@ class AIService:
         prompt = f"""Create {duration_minutes}min audio tour for {location['name']}, {location.get('city', '')}.
 Focus: {interests_text}
 Language: {language}
+Style: {narration_style}
 
 Return JSON:
 {{"title": "engaging title", "content": "conversational {duration_minutes}-minute narration script with clear sections"}}
@@ -287,6 +293,7 @@ Requirements:
         interests: List[str],
         duration_minutes: int,
         language: str,
+        narration_style: str,
         provider: LLMProvider
     ) -> str:
         """Create deterministic cache key for content"""
@@ -300,6 +307,7 @@ Requirements:
             "interests": interests_sorted,
             "duration": duration_minutes,
             "language": language,
+            "narration_style": narration_style,
             "provider": provider,
         }
         
@@ -429,6 +437,7 @@ Requirements:
         interests: List[str],
         duration_minutes: int,
         language: str = "en",
+        narration_style: str = "conversational",
         provider: Optional[LLMProvider] = None
     ) -> Dict[str, Any]:
         """Estimate cost for tour generation"""
@@ -436,7 +445,7 @@ Requirements:
         
         # Check if content is cached
         cache_key = self._create_content_cache_key(
-            location, interests, duration_minutes, language, provider
+            location, interests, duration_minutes, language, narration_style, provider
         )
         
         cached_result = await self.cache.get_json(cache_key)
@@ -449,7 +458,7 @@ Requirements:
             }
         
         # Estimate tokens for generation
-        prompt = self._create_optimized_prompt(location, interests, duration_minutes, language)
+        prompt = self._create_optimized_prompt(location, interests, duration_minutes, language, narration_style)
         input_tokens = len(prompt) // 4  # Rough estimate
         output_tokens = duration_minutes * 50  # Estimate based on duration
         

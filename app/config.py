@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = Field(..., description="Supabase anonymous key")
     
     # Redis
-    REDIS_URL: str = Field(..., description="Redis connection URL")
+    REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis connection URL (defaults to local Redis)")
     REDIS_MAX_CONNECTIONS: int = Field(default=10)
     
     # AI Services

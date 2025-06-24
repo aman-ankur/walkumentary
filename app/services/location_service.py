@@ -10,7 +10,7 @@ from sqlalchemy import select, text, func
 
 from models.location import Location
 from schemas.location import LocationResponse
-from services.cache_service import CacheService
+from services.cache_service import cache_service
 import uuid
 
 class LocationService:
@@ -18,7 +18,7 @@ class LocationService:
     
     def __init__(self):
         self.base_url = "https://nominatim.openstreetmap.org"
-        self.cache = CacheService()
+        self.cache = cache_service
         self.timeout = 10
         self.headers = {
             "User-Agent": "Walkumentary/1.0 (contact@walkumentary.app)"
