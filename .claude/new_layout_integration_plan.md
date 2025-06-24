@@ -123,4 +123,21 @@ The new layout introduces a warmer orange theme (`#E87A47`), re-imagined page st
 <!-- End of expanded integration plan -->
 
 ---
+
+## 📊 Current Progress Snapshot (2025-06-24)
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| 0 – Foundation | ✅ Complete | Tailwind palette + Inter font merged. |
+| 1 – Core Primitives | ✅ Complete | UI primitives updated (`Button`, `Card`, etc.). |
+| 2 – Header & Navigation | ✅ Complete | New `Header.tsx` in place; bottom-nav folded. |
+| 3 – Landing Page | ✅ MVP skeleton | `HeroSection`, `SearchSection`, `PopularDestinations` implemented with placeholder copy. |
+| 4 – Features Page | ⬜ Not started | Await design approval. |
+| 5 – Audio Player Page | ⬜ Not started | Waiting on final visuals. |
+| 6 – Customization Flow | ⬜ Back-end fields added, UI pending | API accepts `narration_style`, `voice`; UI build blocked until Phase 4. |
+| 7 – Polish & QA | ⬜ Pending | Will commence after Phase 6. |
+
+Legend: ✅ done ⬜ pending / in-progress.
+
+---
 End of integration plan. 

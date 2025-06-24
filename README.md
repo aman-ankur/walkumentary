@@ -71,35 +71,27 @@ Walkumentary is a **modern, cost-optimized mobile web application** that transfo
 
 ```
 walkumentary/
-├── .claude/                        # Complete project documentation
-│   ├── prd.md                     # Product Requirements Document
-│   ├── architecture.md            # System Architecture Design
-│   ├── technical-spec.md          # Technical Implementation Guide
-│   ├── llm-strategy.md            # Multi-LLM Cost Optimization Strategy
-│   ├── roadmap.md                 # 2-3 Week Implementation Plan
-│   ├── frontend-implementation-guide.md  # Next.js Development Guide
-│   ├── backend-implementation-guide.md   # FastAPI Development Guide
-│   ├── testing-strategy.md        # Comprehensive Testing Plan
-│   ├── phase-implementation-guide.md     # Step-by-Step Implementation
-│   ├── environment-setup.md       # Development Environment Setup
-│   └── project_context.md         # Single Source of Truth
-├── memory-bank/                   # Previous iteration (reference only)
-├── frontend/                      # Next.js 14 application (to be created)
-│   ├── src/
-│   │   ├── app/                  # App Router pages
-│   │   ├── components/           # Reusable UI components
-│   │   ├── lib/                  # Utilities and configurations
-│   │   ├── hooks/                # Custom React hooks
-│   │   └── __tests__/            # Comprehensive test suite
+├── .claude/                      # Living documentation (architecture, roadmap, guides)
+│   ├── architecture.md
+│   ├── roadmap.md
+│   ├── frontend-implementation-guide.md
+│   ├── backend-implementation-guide.md
+│   └── …
+├── app/                          # FastAPI backend (Python 3.9+)
+│   ├── routers/                  # API endpoints
+│   ├── services/                 # Business / AI logic
+│   ├── models/                   # SQLAlchemy models
+│   ├── schemas/                  # Pydantic schemas
+│   ├── main.py                   # FastAPI entry-point (uvicorn app.main:app)
+│   └── tests/                    # Pytest test-suite
+├── frontend/                     # Next.js 14 (App Router) front-end
+│   ├── src/                      # Source code & components
+│   ├── public/                   # Static assets / PWA files
 │   └── package.json
-├── backend/                       # FastAPI application (to be created)
-│   ├── app/
-│   │   ├── models/               # SQLAlchemy models
-│   │   ├── routers/              # API endpoints
-│   │   ├── services/             # Business logic with multi-LLM support
-│   │   ├── main.py               # FastAPI app
-│   │   └── tests/                # Comprehensive test suite
-│   └── requirements.txt
+├── requirements.txt              # Backend Python deps
+├── requirements-minimal.txt      # Lighter dependency set for CI / cold-starts
+├── setup_database.py             # Local PG helper script
+├── walk_venv/                    # Local Python virtualenv (ignored in git)
 └── README.md
 ```
 
@@ -141,7 +133,7 @@ npm run test:coverage    # Run tests with coverage
 npm run test:e2e         # Run Cypress E2E tests
 
 # Backend (FastAPI)
-uvicorn main:app --reload    # Start development server
+uvicorn app.main:app --reload  # Start development server
 pytest                       # Run tests
 pytest --cov=app            # Run tests with coverage
 black . && isort .          # Code formatting
