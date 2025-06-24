@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from openai import AsyncOpenAI
 from anthropic import AsyncAnthropic
 import aiohttp
+import time
 
 from config import settings, LLMProvider
 from services.cache_service import cache_service
@@ -195,6 +196,7 @@ class AIService:
         """Generate content using OpenAI"""
         config = self.provider_configs[LLMProvider.OPENAI]
         
+        t0 = time.perf_counter()
         response = await self.openai_client.chat.completions.create(
             model=config["model"],
             messages=[
@@ -208,6 +210,8 @@ class AIService:
             temperature=config["temperature"],
             top_p=config["top_p"],
         )
+        latency_ms = int((time.perf_counter() - t0) * 1000)
+        logger.info(f"LLM OpenAI latency {latency_ms} ms | model={config['model']}")
         
         return response.choices[0].message.content.strip()
     
@@ -215,6 +219,7 @@ class AIService:
         """Generate content using Anthropic"""
         config = self.provider_configs[LLMProvider.ANTHROPIC]
         
+        t0 = time.perf_counter()
         response = await self.anthropic_client.messages.create(
             model=config["model"],
             max_tokens=config["max_tokens"],
@@ -224,6 +229,8 @@ class AIService:
                 {"role": "user", "content": prompt}
             ]
         )
+        latency_ms = int((time.perf_counter() - t0) * 1000)
+        logger.info(f"LLM Anthropic latency {latency_ms} ms | model={config['model']}")
         
         return response.content[0].text.strip()
     
@@ -356,12 +363,17 @@ Requirements:
             return base64.b64decode(cached_audio_b64)
         
         try:
+            import time
+            t0 = time.perf_counter()
             response = await self.openai_client.audio.speech.create(
                 model=settings.OPENAI_TTS_MODEL,
                 voice=voice,
                 input=text,
                 speed=speed
             )
+            
+            latency_ms = int((time.perf_counter() - t0) * 1000)
+            logger.info(f"TTS latency {latency_ms} ms | model={settings.OPENAI_TTS_MODEL} | voice={voice}")
             
             audio_data = response.content
             
