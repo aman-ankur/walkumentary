@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   title: 'Walkumentary',
   description: 'Personalized AI-powered audio tours for travelers',
   manifest: '/manifest.json',
+  icons: { icon: '/walkumentary-icon.jpeg' },
+  openGraph: {
+    images: ['/walkumentary-icon.jpeg'],
+  },
 }
 
 export const viewport: Viewport = {
