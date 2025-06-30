@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, DECIMAL, JSON, Index
 from sqlalchemy.orm import relationship
 
-from models.base import BaseModel
+from app.models.base import BaseModel
 
 class Location(BaseModel):
     __tablename__ = "locations"

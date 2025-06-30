@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
 from datetime import datetime
-from schemas.base import IDMixin, TimestampMixin
-from schemas.location import LocationResponse
+from app.schemas.base import IDMixin, TimestampMixin
+from app.schemas.location import LocationResponse
 
 class TourBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)

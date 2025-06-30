@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey, ARRAY, Text, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from models.base import BaseModel
+from app.models.base import BaseModel
 
 class Tour(BaseModel):
     __tablename__ = "tours"

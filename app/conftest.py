@@ -9,11 +9,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from main import app
-from database import get_db, Base
-from models.user import User
-from models.location import Location
-from models.tour import Tour
-from models.cache import CacheEntry
+from app.database import get_db, Base
+from app.models.user import User
+from app.models.location import Location
+from app.models.tour import Tour
+from app.models.cache import CacheEntry
 from auth import get_current_user_from_token
 
 

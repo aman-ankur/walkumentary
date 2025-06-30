@@ -13,13 +13,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
 
-from models.tour import Tour
-from models.location import Location
-from models.user import User
-from schemas.tour import TourCreate, TourUpdate, TourResponse, TourGenerationRequest
-from services.ai_service import ai_service
-from services.cache_service import cache_service
-from config import settings
+from app.models.tour import Tour
+from app.models.location import Location
+from app.models.user import User
+from app.schemas.tour import TourCreate, TourUpdate, TourResponse, TourGenerationRequest
+from .ai_service import ai_service
+from .cache_service import cache_service
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -178,7 +178,7 @@ class TourService:
                 audio_url = f"{settings.API_BASE_URL}/tours/{tour_id}/audio"
             
             # Update tour in database
-            from database import AsyncSessionLocal
+            from app.database import AsyncSessionLocal
             async with AsyncSessionLocal() as db:
                 result = await db.execute(select(Tour).where(Tour.id == tour_id))
                 tour = result.scalar_one_or_none()
@@ -202,7 +202,7 @@ class TourService:
             
             # Update tour status to error
             try:
-                from database import AsyncSessionLocal
+                from app.database import AsyncSessionLocal
                 async with AsyncSessionLocal() as db:
                     result = await db.execute(select(Tour).where(Tour.id == tour_id))
                     tour = result.scalar_one_or_none()
@@ -623,7 +623,7 @@ class TourService:
 
     async def _update_tour_status(self, tour_id: uuid.UUID, status: str):
         """Update only status field quickly"""
-        from database import AsyncSessionLocal
+        from app.database import AsyncSessionLocal
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(Tour).where(Tour.id == tour_id))
             tour = result.scalar_one_or_none()
@@ -632,7 +632,7 @@ class TourService:
                 await db.commit()
 
     async def _set_tour_error(self, tour_id: uuid.UUID, message: str):
-        from database import AsyncSessionLocal
+        from app.database import AsyncSessionLocal
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(Tour).where(Tour.id == tour_id))
             tour = result.scalar_one_or_none()
@@ -654,7 +654,7 @@ class TourService:
 
     async def _save_content(self, tour_id: uuid.UUID, content_data: dict, status: str = "content_ready"):
         """Persist generated title/content and update status in one quick transaction."""
-        from database import AsyncSessionLocal
+        from app.database import AsyncSessionLocal
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(Tour).where(Tour.id == tour_id))
             tour = result.scalar_one_or_none()

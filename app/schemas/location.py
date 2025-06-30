@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Tuple, Union
 from datetime import datetime
 import uuid
-from schemas.base import IDMixin, TimestampMixin
+from app.schemas.base import IDMixin, TimestampMixin
 
 class LocationBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)

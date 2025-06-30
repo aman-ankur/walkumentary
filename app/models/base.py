@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declared_attr
 import uuid
 
-from database import Base
+from app.database import Base
 
 class BaseModel(Base):
     __abstract__ = True

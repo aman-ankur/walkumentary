@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
-from schemas.base import IDMixin, TimestampMixin
-from schemas.auth import UserPreferences
+from app.schemas.base import IDMixin, TimestampMixin
+from app.schemas.auth import UserPreferences
 
 class UserBase(BaseModel):
     email: EmailStr

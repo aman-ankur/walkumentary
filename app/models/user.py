@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, JSON, Boolean
 from sqlalchemy.orm import relationship
 
-from models.base import BaseModel
+from app.models.base import BaseModel
 
 class User(BaseModel):
     __tablename__ = "users"

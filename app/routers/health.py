@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 import time
 
-from database import get_db
-from config import settings
+from app.database import get_db
+from app.config import settings
 
 router = APIRouter()
 

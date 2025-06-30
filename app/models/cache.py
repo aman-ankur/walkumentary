@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Text, DateTime, Integer
 from sqlalchemy.sql import func
 
-from models.base import BaseModel
+from app.models.base import BaseModel
 
 class CacheEntry(BaseModel):
     __tablename__ = "cache_entries"

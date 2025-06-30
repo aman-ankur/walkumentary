@@ -32,6 +32,7 @@ MANIFEST
 # Virtual environments
 venv/
 walk_venv/
+venv_walk/
 ENV/
 env/
 .venv/
