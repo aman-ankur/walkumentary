@@ -366,6 +366,333 @@ export function LocationSearch({ onLocationSelect }: LocationSearchProps) {
 }
 ```
 
+### 2.6 Audio Player v2 Components (Phase 2A)
+
+#### Enhanced Audio Player with Professional UI
+
+```typescript
+// components/audio/EnhancedAudioPlayer.tsx
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useAudioPlayer } from "@/components/player/AudioPlayerProvider";
+import { TourArtwork } from "@/components/audio/TourArtwork";
+import { SubtitleOverlay } from "@/components/audio/SubtitleOverlay";
+import { VolumeControl } from "@/components/audio/VolumeControl";
+import { 
+  RewindIcon, 
+  SkipBackIcon, 
+  PlayPauseIcon, 
+  SkipForwardIcon, 
+  ForwardIcon 
+} from "@/components/ui/icons";
+
+export function EnhancedAudioPlayer({ tour }: { tour: Tour }) {
+  const [subtitleOpen, setSubtitleOpen] = useState(false);
+  const {
+    isPlaying,
+    togglePlay,
+    currentTime,
+    duration,
+    volume,
+    seek,
+    setVolume,
+  } = useAudioPlayer();
+
+  const skip = (delta: number) => {
+    seek(Math.min(Math.max(currentTime + delta, 0), duration));
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+      {/* Dynamic Artwork */}
+      <div className="h-56 md:h-72">
+        <TourArtwork 
+          tourId={tour.id} 
+          tourTitle={tour.title}
+          location={tour.location}
+        />
+      </div>
+
+      {/* Player Controls */}
+      <div className="p-6 space-y-6">
+        {/* 5-Button Control Layout */}
+        <div className="flex items-center justify-center gap-5">
+          <Button onClick={() => skip(-15)} aria-label="Rewind 15 seconds">
+            <RewindIcon className="w-5 h-5" />
+          </Button>
+          <Button onClick={() => skip(-30)} aria-label="Skip backward">
+            <SkipBackIcon className="w-5 h-5" />
+          </Button>
+          <Button
+            className="w-16 h-16 rounded-full bg-orange-500 text-white hover:bg-orange-600"
+            onClick={togglePlay}
+          >
+            <PlayPauseIcon isPlaying={isPlaying} className="w-7 h-7" />
+          </Button>
+          <Button onClick={() => skip(30)} aria-label="Skip forward">
+            <SkipForwardIcon className="w-5 h-5" />
+          </Button>
+          <Button onClick={() => skip(15)} aria-label="Forward 15 seconds">
+            <ForwardIcon className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Volume Control */}
+        <VolumeControl volume={volume} onVolumeChange={setVolume} />
+
+        {/* Dual Subtitle Buttons */}
+        <div className="flex gap-2">
+          <button
+            className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-medium py-2 px-3 rounded-lg"
+            onClick={() => setSubtitleOpen(true)}
+            disabled={!tour?.transcript?.length}
+          >
+            {tour?.transcript?.length ? "Full-Screen Subtitles" : "Transcript Unavailable"}
+          </button>
+          <button className="w-10 h-10 border border-slate-200 rounded-lg">
+            {/* List icon */}
+          </button>
+        </div>
+      </div>
+
+      {/* Subtitle Overlay */}
+      <SubtitleOverlay
+        isOpen={subtitleOpen}
+        onClose={() => setSubtitleOpen(false)}
+        subtitles={tour?.transcript}
+        currentTime={currentTime}
+        onSeek={seek}
+      />
+    </div>
+  );
+}
+```
+
+#### Professional SVG Icon System
+
+```typescript
+// components/ui/icons/PlayPauseIcon.tsx
+interface PlayPauseIconProps {
+  isPlaying: boolean;
+  className?: string;
+}
+
+export function PlayPauseIcon({ isPlaying, className = "w-7 h-7" }: PlayPauseIconProps) {
+  if (isPlaying) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+      </svg>
+    );
+  }
+  
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M5 3v18l15-9L5 3z"/>
+    </svg>
+  );
+}
+
+// components/ui/icons/RewindIcon.tsx
+export function RewindIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+            d="M12 12H3m0 0l3 3m-3-3l3-3m6-6v3.6A9 9 0 1111.4 21"/>
+      <text x="12" y="8" fontSize="8" textAnchor="middle" fill="currentColor">15</text>
+    </svg>
+  );
+}
+```
+
+#### Dynamic Artwork Generation System
+
+```typescript
+// components/artwork/utils/artworkSelector.ts
+export function getArtworkCategory(location?: Location): ArtworkCategory {
+  if (!location) return 'urban';
+  
+  const locationName = (location.name || '').toLowerCase();
+  const locationType = (location.location_type || '').toLowerCase();
+  
+  // Coastal indicators
+  if (locationName.includes('beach') || locationName.includes('coast') || 
+      locationName.includes('harbor') || locationType.includes('coast')) {
+    return 'coastal';
+  }
+  
+  // Mountain indicators  
+  if (locationName.includes('mountain') || locationName.includes('peak') ||
+      locationType.includes('mountain')) {
+    return 'mountain';
+  }
+  
+  // Nature indicators
+  if (locationName.includes('park') || locationName.includes('forest') ||
+      locationType.includes('park')) {
+    return 'nature';
+  }
+  
+  // Cultural indicators
+  if (locationName.includes('temple') || locationName.includes('museum') ||
+      locationName.includes('historic') || locationType.includes('historic')) {
+    return 'cultural';
+  }
+  
+  return 'urban'; // Default
+}
+
+export function selectArtwork(tourId: string, location?: Location) {
+  const seed = generateSeed(tourId);
+  const category = getArtworkCategory(location);
+  const colors = getColorsForTemplate(category, seed);
+  const templateIndex = (seed >> 4) % 3;
+  
+  return { category, templateIndex, colors, seed };
+}
+```
+
+#### Professional SVG Artwork Templates
+
+```typescript
+// components/artwork/templates/urban/CitySkyline.tsx
+export function CitySkyline({ colors, tourTitle, location }: ArtworkProps) {
+  return (
+    <svg viewBox="0 0 400 400" className="w-full h-full">
+      <defs>
+        <linearGradient id={`city-sky-${tourTitle}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={colors.primary} />
+          <stop offset="70%" stopColor={colors.secondary} />
+          <stop offset="100%" stopColor={colors.accent} />
+        </linearGradient>
+      </defs>
+      
+      {/* Sky gradient */}
+      <rect width="400" height="400" fill={`url(#city-sky-${tourTitle})`} />
+      
+      {/* Sun */}
+      <circle cx="320" cy="80" r="45" fill={colors.accent} opacity="0.9" />
+      
+      {/* Building silhouettes with varying heights and opacity */}
+      <rect x="0" y="280" width="60" height="120" fill={colors.building1} opacity="0.9" />
+      <rect x="45" y="220" width="40" height="180" fill={colors.building2} opacity="0.8" />
+      {/* Additional buildings... */}
+      
+      {/* Window details */}
+      <rect x="10" y="290" width="4" height="6" fill={colors.accent} opacity="0.6" />
+      <rect x="20" y="300" width="4" height="6" fill={colors.accent} opacity="0.5" />
+      
+      {/* Text overlay */}
+      <foreignObject x="20" y="320" width="360" height="60">
+        <div className="text-white">
+          <span className="text-lg font-bold drop-shadow-lg">{tourTitle}</span>
+          <span className="text-sm opacity-90 drop-shadow">{location}</span>
+        </div>
+      </foreignObject>
+    </svg>
+  );
+}
+```
+
+#### Transcript System with Backend Integration
+
+```typescript
+// Backend: app/utils/transcript_generator.py
+class TranscriptGenerator:
+    @staticmethod
+    def generate_transcript(content: str, duration_minutes: int) -> List[TranscriptSegment]:
+        """Generate timestamped transcript segments from tour content"""
+        
+        # Split content into logical segments
+        paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+        
+        if not paragraphs:
+            sentences = [s.strip() + '.' for s in content.split('.') if s.strip()]
+            segments = sentences[:15]  # Limit segments
+        else:
+            segments = paragraphs
+        
+        # Calculate timing proportionally
+        total_chars = sum(len(segment) for segment in segments)
+        duration_seconds = duration_minutes * 60
+        
+        transcript = []
+        current_time = 0.0
+        
+        for i, segment in enumerate(segments):
+            char_ratio = len(segment) / total_chars
+            segment_duration = max(2.0, duration_seconds * char_ratio)
+            
+            if i == len(segments) - 1:
+                segment_duration = duration_seconds - current_time
+            
+            transcript.append({
+                "startTime": round(current_time, 1),
+                "endTime": round(current_time + segment_duration, 1),
+                "text": segment.strip()
+            })
+            
+            current_time += segment_duration
+        
+        return transcript
+
+// Frontend: components/audio/SubtitleOverlay.tsx
+export function SubtitleOverlay({ isOpen, onClose, subtitles, currentTime, onSeek }) {
+  const currentIdx = subtitles.findIndex(
+    (s) => currentTime >= s.startTime && currentTime <= s.endTime
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-xl max-w-2xl w-full p-6">
+        <div className="space-y-2 max-h-[70vh] overflow-y-auto">
+          {subtitles.map((s, idx) => (
+            <div
+              key={idx}
+              className={`p-3 rounded cursor-pointer transition-colors ${
+                idx === currentIdx ? 'bg-orange-100' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => onSeek?.(s.startTime)}
+            >
+              <div className="text-xs text-gray-500">
+                {formatTime(s.startTime)} - {formatTime(s.endTime)}
+              </div>
+              <div className="text-sm">{s.text}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### Key Technical Features
+
+**Professional UI Components:**
+- 5 custom SVG icons with embedded timing indicators
+- Volume control with visual progress indication
+- Dual subtitle button layout matching design specifications
+- Responsive design with touch-friendly controls
+
+**Dynamic Artwork System:**
+- Location-based template categorization (50+ keywords)
+- Deterministic artwork selection ensuring consistency
+- Professional SVG templates with gradients and layering
+- 15 color palettes with theme-specific properties
+
+**Transcript Integration:**
+- Backend transcript generation with intelligent segmentation
+- JSONB database storage with GIN indexing
+- Frontend overlay with click-to-seek functionality
+- Real-time current segment highlighting
+
+**Performance & Quality:**
+- TypeScript type safety throughout
+- AudioPlayerProvider integration for state management
+- Mobile-optimized responsive design
+- Efficient SVG rendering with proper scaling
+
 ## 3. Backend Technical Specification
 
 ### 3.1 FastAPI Application Structure

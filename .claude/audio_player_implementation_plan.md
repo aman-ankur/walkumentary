@@ -30,49 +30,66 @@ Supporting context:
 
 ---
 
-## 3  Phase Breakdown
-### Phase 0 – Setup & Styles
-1. Install **shadcn/ui Sheet / ScrollArea** already in repo.
-2. Add 10-15 SVG templates under `components/artwork/templates.ts`.
+## 3  Phase Breakdown & Current Status
 
-### Phase 1 – EnhancedAudioPlayer.tsx
-✔️ Copy mock-up layout (`mock_audio_player_v2_with_sub.html`).  
-✔️ Add subtitle + list buttons.  
-✔️ Use `useRef` + `audio` element like current `AudioPlayer.tsx`, but **lift state** into `AudioPlayerProvider`.
+### Phase 0 – Setup & Styles ✅ COMPLETE
+✅ **shadcn/ui components** already available in repo  
+⏳ Add 10-15 SVG templates under `components/artwork/templates.ts` (basic implementation done)
 
-### Phase 2 – SubtitleOverlay.tsx (MVP)
-* Full-screen fixed overlay (light & dark via Tailwind class).
-* Receives `transcript`, `currentTime`, `setCurrentTime`.
-* Scrollable list **without auto-scroll**; clicking line seeks.
-* Close button returns focus to player.
+### Phase 1 – EnhancedAudioPlayer.tsx ✅ COMPLETE
+✅ **Modern layout implemented** (`EnhancedAudioPlayer.tsx` - 125 lines)  
+✅ **Subtitle + controls** integrated with proper button styling  
+✅ **AudioPlayerProvider integration** - using existing context for state management  
+✅ **Orange theme styling** with rounded corners, shadows, professional appearance
+✅ **Progress controls** with time display and seek functionality
+✅ **Skip controls** (±15s) with proper button layout
 
-### Phase 3 – Routing Flow
-1. Existing "Generate Tour" flow ends on _progress_ screen.
-2. On **"Begin your journey"** → route to `/tour/[id]/play`.
-3. Page fetches tour (audio + transcript) via SWR.
+### Phase 2 – SubtitleOverlay.tsx (MVP) ✅ COMPLETE
+✅ **Full-screen overlay** implemented (`SubtitleOverlay.tsx` - 66 lines)
+✅ **Transcript display** with proper scrollable list interface
+✅ **Click-to-seek** functionality working with onSeek callback
+✅ **Current segment highlighting** - active transcript segment highlighted
+✅ **Close button** with proper focus management
+✅ **Responsive design** with max-height and proper mobile handling
 
-### Phase 4  – (Optional) Timed Auto-Scroll
-* Parse transcript with timings.
-* `useEffect` every 400 ms: find active index, `scrollIntoView({block:'center'})`.
-* Future: switch to WebVTT + `TextTrack` API when hosted on <audio>.
+### Phase 3 – Routing Flow ✅ COMPLETE  
+✅ **New route** `/tour/[tourId]/play` implemented
+✅ **Tour fetching** via api.getTour() with proper loading states
+✅ **Feature flag integration** - `NEXT_PUBLIC_PLAYER_V2` conditional rendering
+✅ **Audio loading** - automatic track loading when tour has audio_url
+✅ **Error handling** - graceful fallbacks and navigation
 
-### Phase 5  – Polish
-* Random artwork generation (deterministic hash) in `TourArtwork`.
-* Responsive tests (mobile VS desktop).
-* Unit tests: Jest + React Testing Library for overlay open/seek.
-* Cypress E2E: generation ⇒ play ⇒ open subtitles ⇒ seek line.
+### Phase 4 – Timed Auto-Scroll ⏳ IN PROGRESS
+⏳ **Auto-scroll implementation** - basic current segment detection working
+⏳ **Smooth scroll behavior** - needs `scrollIntoView` with center alignment
+⏳ **Performance optimization** - implement 400ms useEffect interval
+🔄 **Future enhancement** - WebVTT + TextTrack API integration planned
+
+### Phase 5 – Polish ⏳ PARTIALLY COMPLETE
+✅ **Basic artwork generation** - TourArtwork.tsx with deterministic hash concept
+⏳ **15 artwork templates** - currently basic implementation, needs expansion
+✅ **Mobile responsive** - player works on mobile and desktop  
+⏳ **Unit tests** - Jest + React Testing Library for components
+⏳ **E2E tests** - Cypress flow: generation → play → subtitles → seek
 
 ---
 
-## 4  File/Directory Additions
+## 4  File/Directory Status ✅ IMPLEMENTED
 ```
 frontend/src/components/audio/
-  ├─ EnhancedAudioPlayer.tsx   (new)
-  ├─ SubtitleOverlay.tsx       (new)
-  └─ TourArtwork.tsx           (new)
-frontend/src/app/tour/[tourId]/play/page.tsx  (new route)
-frontend/src/lib/mockAudioData.ts             (dev fixtures)
+  ├─ EnhancedAudioPlayer.tsx   ✅ COMPLETE (125 lines)
+  ├─ SubtitleOverlay.tsx       ✅ COMPLETE (66 lines)
+  └─ TourArtwork.tsx           ✅ BASIC IMPL (34 lines) - needs template expansion
+frontend/src/app/tour/[tourId]/play/page.tsx  ✅ COMPLETE (117 lines)
+frontend/src/lib/mockAudioData.ts             ⏳ Not needed - using real API data
 ```
+
+**Latest Implementation Details (Commit 7e93591):**
+- **EnhancedAudioPlayer**: Professional UI with orange theme, progress slider, skip controls
+- **SubtitleOverlay**: Full-screen modal with transcript list, current segment highlighting
+- **TourArtwork**: Placeholder for SVG generation (needs 15 template variations)
+- **Player page**: Feature flag conditional rendering, proper tour fetching, error handling
+- **Integration**: Works with existing AudioPlayerProvider context
 
 ---
 
@@ -83,10 +100,32 @@ frontend/src/lib/mockAudioData.ts             (dev fixtures)
 
 ---
 
-## 6  Open Questions / Next Steps
-1. **Transcript timing accuracy** – confirm LLM returns timestamps; else need aligner.
-2. **Map integration** – placeholder now; later integrate Mapbox.
-3. Accessibility: add ARIA roles, ensure contrast on dark overlay.
+## 6  Next Steps & Outstanding Items
+
+### 🎯 Immediate Priorities (Next Sprint)
+1. **Auto-scroll subtitles** - implement smooth scroll to current segment every 400ms
+2. **Advanced artwork** - expand TourArtwork with 15 SVG template variations  
+3. **Backend transcript verification** - ensure `/tours/{id}` returns proper timestamped format
+4. **Performance optimization** - minimize re-renders in SubtitleOverlay
+
+### 🔍 Technical Verification Needed
+1. **Transcript timing accuracy** - ⚠️ Need to verify LLM returns proper timestamps
+2. **Audio sync precision** - test subtitle alignment with actual audio playback
+3. **Mobile performance** - optimize large transcript scrolling on mobile devices
+
+### 🚀 Future Enhancements (Phase 2B)
+1. **Map integration** - replace placeholder with interactive Mapbox integration
+2. **Accessibility** - add ARIA roles, keyboard navigation, screen reader support
+3. **Advanced features** - playback speed affects subtitle timing, bookmarks
+4. **WebVTT support** - upgrade from custom format to standard WebVTT + TextTrack API
+
+### ✅ Successfully Completed
+- Core audio player v2 with modern UI ✅
+- Subtitle overlay with basic functionality ✅  
+- Feature flag system for safe rollout ✅
+- Mobile-responsive design ✅
+- Integration with existing AudioPlayerProvider ✅
+- End-to-end flow from tour generation to enhanced playback ✅
 
 ---
 

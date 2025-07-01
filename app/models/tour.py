@@ -14,6 +14,7 @@ class Tour(BaseModel):
     
     # Audio information
     audio_url = Column(String, nullable=True)
+    transcript = Column(JSON, nullable=True)  # Array of transcript segments
     duration_minutes = Column(Integer, nullable=False)
     
     # Tour preferences

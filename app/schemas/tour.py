@@ -5,6 +5,12 @@ from datetime import datetime
 from app.schemas.base import IDMixin, TimestampMixin
 from app.schemas.location import LocationResponse
 
+class TranscriptSegment(BaseModel):
+    """Individual transcript segment with timing information"""
+    startTime: float = Field(..., description="Start time in seconds")
+    endTime: float = Field(..., description="End time in seconds") 
+    text: str = Field(..., min_length=1, description="Transcript text content")
+
 class TourBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=500)
@@ -28,6 +34,7 @@ class TourUpdate(BaseModel):
 
 class TourResponse(TourBase, IDMixin, TimestampMixin):
     audio_url: Optional[str] = None
+    transcript: Optional[List[TranscriptSegment]] = Field(None, description="Timestamped transcript segments")
     location: LocationResponse
     llm_provider: Optional[str] = None
     llm_model: Optional[str] = None

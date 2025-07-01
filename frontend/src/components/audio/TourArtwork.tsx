@@ -1,34 +1,38 @@
 import React from "react";
+import { selectArtwork, getTemplateByIndex } from "@/components/artwork";
 
 interface TourArtworkProps {
   tourId: string;
+  tourTitle?: string;
+  location?: {
+    name?: string;
+    city?: string;
+    country?: string;
+    location_type?: string;
+  };
 }
 
 /**
- * TourArtwork – deterministic SVG placeholder. Will be replaced with themed
- * artwork templates in Phase 2.
+ * TourArtwork – Dynamic SVG artwork with deterministic template selection
+ * based on tour ID and location context.
  */
-export function TourArtwork({ tourId }: TourArtworkProps) {
-  // TODO: replace with hash-based template selection as per audio_player_layout_plan
+export function TourArtwork({ tourId, tourTitle = "Tour", location }: TourArtworkProps) {
+  // Select artwork template and colors based on tour ID and location
+  const { category, templateIndex, colors } = selectArtwork(tourId, location);
+  
+  // Get the specific template component
+  const template = getTemplateByIndex(category, templateIndex);
+  const ArtworkComponent = template.component;
+  
+  // Format location string for display
+  const locationString = location?.name || location?.city || "Destination";
+  
   return (
-    <svg viewBox="0 0 400 400" className="w-full h-full">
-      <defs>
-        <linearGradient id={`grad-${tourId}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#E87A47" />
-          <stop offset="100%" stopColor="#D16A37" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="400" fill={`url(#grad-${tourId})`} />
-      <text
-        x="200"
-        y="200"
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize="24"
-        fill="#fff"
-      >
-        Artwork
-      </text>
-    </svg>
+    <ArtworkComponent
+      colors={colors}
+      tourTitle={tourTitle}
+      location={locationString}
+      className="w-full h-full"
+    />
   );
 } 

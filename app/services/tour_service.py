@@ -20,6 +20,7 @@ from app.schemas.tour import TourCreate, TourUpdate, TourResponse, TourGeneratio
 from .ai_service import ai_service
 from .cache_service import cache_service
 from app.config import settings
+from app.utils.transcript_generator import TranscriptGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +177,33 @@ class TourService:
                 audio_b64 = base64.b64encode(audio_data).decode('utf-8')
                 await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
                 audio_url = f"{settings.API_BASE_URL}/tours/{tour_id}/audio"
+
+            # ----------------- 3. Generate transcript segments -----------------
+            transcript_segments = None
+            try:
+                # Estimate audio duration (for transcript timing)
+                estimated_duration = TranscriptGenerator.estimate_audio_duration(
+                    content_data["content"], 
+                    words_per_minute=150
+                )
+                
+                # Generate transcript segments
+                transcript_segments = TranscriptGenerator.generate_transcript_segments(
+                    content_data["content"],
+                    estimated_duration
+                )
+                
+                logger.info(
+                    "Transcript generated",
+                    extra={
+                        "tour_id": str(tour_id),
+                        "segments": len(transcript_segments),
+                        "duration": estimated_duration
+                    }
+                )
+            except Exception as e:
+                logger.warning(f"Transcript generation failed: {e}")
+                # Continue without transcript - not critical for tour functionality
             
             # Update tour in database
             from app.database import AsyncSessionLocal
@@ -187,13 +215,14 @@ class TourService:
                     tour.title = content_data["title"]
                     tour.content = content_data["content"]
                     tour.audio_url = audio_url
+                    tour.transcript = transcript_segments  # Add transcript to tour
                     tour.status = "ready"
                     tour.llm_provider = content_data["metadata"]["actual_provider"]
                     tour.llm_model = content_data["metadata"]["model"]
                     tour.generation_params = content_data["metadata"]
                     
                     await db.commit()
-                    logger.info(f"Tour {tour_id} generation completed successfully")
+                    logger.info(f"Tour {tour_id} generation completed successfully with {len(transcript_segments) if transcript_segments else 0} transcript segments")
                 else:
                     logger.error(f"Tour {tour_id} not found during content update")
                     
@@ -291,6 +320,7 @@ class TourService:
                     "description": tour.description,
                     "content": tour.content,
                     "audio_url": tour.audio_url,
+                    "transcript": tour.transcript,  # Include transcript in response
                     "duration_minutes": tour.duration_minutes,
                     "interests": tour.interests or [],
                     "language": tour.language,
