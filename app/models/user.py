@@ -5,6 +5,7 @@ from app.models.base import BaseModel
 
 class User(BaseModel):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
     
     email = Column(String, unique=True, index=True, nullable=False)
     full_name = Column(String, nullable=True)
@@ -20,7 +21,7 @@ class User(BaseModel):
     })
     
     # Relationships
-    tours = relationship("Tour", back_populates="user", cascade="all, delete-orphan")
+    tours = relationship("app.models.tour.Tour", back_populates="user", cascade="all, delete-orphan")
     
     @property
     def interests(self):

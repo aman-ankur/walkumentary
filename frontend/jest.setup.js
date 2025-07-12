@@ -28,6 +28,40 @@ jest.mock('next/dynamic', () => {
   }
 })
 
+// Mock Supabase
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({
+    auth: {
+      getUser: jest.fn(),
+      signOut: jest.fn(),
+      onAuthStateChange: jest.fn(() => ({
+        data: { subscription: { unsubscribe: jest.fn() } }
+      })),
+    },
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn(),
+        })),
+      })),
+      insert: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    })),
+  })),
+}))
+
+// Mock lib/api
+jest.mock('@/lib/api', () => ({
+  searchLocations: jest.fn(),
+  detectLocation: jest.fn(),
+  generateTour: jest.fn(),
+  getUserTours: jest.fn(),
+  getTour: jest.fn(),
+  deleteTour: jest.fn(),
+  regenerateAudio: jest.fn(),
+}))
+
 // Note: Module-specific mocks are defined in individual test files
 
 // Mock geolocation
