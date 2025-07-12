@@ -48,11 +48,9 @@ describe("useGeolocation", () => {
   });
 
   it("should detect unsupported geolocation", () => {
-    // Mock unsupported geolocation
-    Object.defineProperty(global.navigator, "geolocation", {
-      value: undefined,
-      writable: true,
-    });
+    // Temporarily remove geolocation
+    const originalGeolocation = global.navigator.geolocation;
+    delete (global.navigator as any).geolocation;
 
     const { result } = renderHook(() => useGeolocation());
 
@@ -60,7 +58,7 @@ describe("useGeolocation", () => {
 
     // Restore geolocation for other tests
     Object.defineProperty(global.navigator, "geolocation", {
-      value: mockGeolocation,
+      value: originalGeolocation,
       writable: true,
     });
   });
@@ -315,10 +313,8 @@ describe("useGeolocation", () => {
   });
 
   it("should handle unsupported geolocation gracefully", () => {
-    Object.defineProperty(global.navigator, "geolocation", {
-      value: undefined,
-      writable: true,
-    });
+    const originalGeolocation = global.navigator.geolocation;
+    delete (global.navigator as any).geolocation;
 
     const { result } = renderHook(() => useGeolocation());
 
@@ -333,7 +329,7 @@ describe("useGeolocation", () => {
 
     // Restore geolocation
     Object.defineProperty(global.navigator, "geolocation", {
-      value: mockGeolocation,
+      value: originalGeolocation,
       writable: true,
     });
   });

@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from database import get_db
-from auth import get_current_active_user
-from models.user import User
-from schemas.location import (
+from app.database import get_db
+from app.auth import get_current_active_user
+from app.models.user import User
+from app.schemas.location import (
     LocationSearchRequest, 
     LocationSearchResponse,
     GPSDetectionRequest,
@@ -13,7 +13,7 @@ from schemas.location import (
     LocationResponse,
     LocationCreate
 )
-from services.location_service import LocationService
+from app.services.location_service import LocationService
 
 router = APIRouter()
 location_service = LocationService()

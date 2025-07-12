@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walkumentary – Audio Player (Mock v2 – Light)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <!--
+    Mockup description (Light theme):
+    • Soft amber-to-yellow radial gradient background.
+    • Three-column layout on desktop – large map on the left (2 cols) and stacked audio UI on the right (1 col).
+    • Right column order: 1) Dynamic artwork card, 2) Audio controls card, 3) Now-playing info card.
+    • Uses neutral card colors (#fff) with subtle borders; primary accent #f97316 (orange-500).
+  -->
+  <body class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+    <!-- Header -->
+    <header class="py-4 bg-white shadow-sm sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-6">
+        <h1 class="font-semibold">Walkumentary</h1>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10 lg:py-16">
+      <!-- Page title / description -->
+      <div class="text-center mb-10 lg:mb-14">
+        <h1 class="text-3xl font-extrabold mb-2 tracking-tight text-slate-800">
+          Historic Berlin Walking Tour
+        </h1>
+        <p class="text-slate-600 max-w-2xl mx-auto">
+          Exploring the heart of Berlin's history and culture in 15 minutes.
+        </p>
+      </div>
+
+      <!-- Main content grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Map / route placeholder -->
+        <div
+          class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm h-[520px] flex items-center justify-center overflow-hidden"
+        >
+          <div class="text-center text-slate-500 px-10">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-16 h-16 mx-auto mb-4 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 20l-5.447-2.724A2 2 0 013 15.382V5a2 2 0 011.118-1.789l8-4a2 2 0 011.764 0l8 4A2 2 0 0122 5v10.382a2 2 0 01-1.553 1.894L15 20.46"
+              />
+            </svg>
+            <h3 class="text-xl font-semibold mb-2">Interactive Map View</h3>
+            <p class="text-sm text-slate-400">
+              (Map integration will render the tour route here)
+            </p>
+          </div>
+        </div>
+
+        <!-- Right-hand column -->
+        <div class="space-y-8">
+          <!-- Artwork card -->
+          <div class="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+            <div class="aspect-square relative">
+              <!-- Example SVG artwork background -->
+              <svg
+                viewBox="0 0 400 400"
+                class="w-full h-full"
+                preserveAspectRatio="xMidYMid slice"
+              >
+                <defs>
+                  <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#ea580c" />
+                  </linearGradient>
+                </defs>
+                <rect width="400" height="400" fill="url(#grad)" />
+                <!-- Simple skyline mock -->
+                <rect y="280" width="400" height="120" fill="#1e293b" />
+                <rect x="40" y="220" width="40" height="60" fill="#334155" />
+                <rect x="100" y="190" width="60" height="90" fill="#475569" />
+                <rect x="200" y="240" width="50" height="40" fill="#334155" />
+                <circle cx="310" cy="90" r="45" fill="#fde047" opacity="0.9" />
+
+                <!-- Overlay text (simplified) -->
+                <foreignObject x="20" y="320" width="360" height="60">
+                  <div class="flex flex-col space-y-1" xmlns="http://www.w3.org/1999/xhtml">
+                    <span class="text-white text-lg font-bold leading-none"
+                      >Historic Berlin</span
+                    >
+                    <span class="text-white/80 text-sm leading-none"
+                      >Berlin, Germany</span
+                    >
+                  </div>
+                </foreignObject>
+              </svg>
+
+              <!-- Subtle top overlay gradient-->
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Audio controls card -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <!-- Progress bar -->
+            <div class="mb-6">
+              <div
+                class="w-full h-2 bg-slate-200 rounded-full overflow-hidden mb-2"
+              >
+                <div class="h-full bg-orange-500 w-1/5"></div>
+              </div>
+              <div class="flex justify-between text-xs text-slate-500">
+                <span>2:30</span><span>15:00</span>
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center justify-center gap-5 mb-6">
+              <button
+                class="p-3 rounded-full hover:bg-slate-100 text-slate-600"
+              >
+                <!-- rewind 15 -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 12H3m0 0l3 3m-3-3l3-3m6-6v3.6A9 9 0 1111.4 21"
+                  />
+                </svg>
+              </button>
+
+              <button
+                class="p-3 rounded-full hover:bg-slate-100 text-slate-600"
+              >
+                <!-- skip back -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 19l-9-7 9-7v14zM22 19l-9-7 9-7v14z"
+                  />
+                </svg>
+              </button>
+
+              <button
+                class="w-16 h-16 rounded-full bg-orange-500 hover:bg-orange-600 flex items-center justify-center text-white shadow-lg"
+              >
+                <!-- play / pause -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-7 h-7"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M5 3v18l15-9L5 3z" />
+                </svg>
+              </button>
+
+              <button
+                class="p-3 rounded-full hover:bg-slate-100 text-slate-600"
+              >
+                <!-- skip forward -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 5l9 7-9 7V5z"
+                  />
+                </svg>
+              </button>
+
+              <button
+                class="p-3 rounded-full hover:bg-slate-100 text-slate-600"
+              >
+                <!-- forward 15 -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 12h9m0 0l-3 3m3-3l-3-3m-6-6v3.6A9 9 0 0012 21"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Volume control -->
+            <div class="flex items-center gap-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4 text-slate-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 5l7 7-7 7 0-6H5V11h6V5z"
+                />
+              </svg>
+              <div class="flex-1 h-1 bg-slate-200 rounded-full">
+                <div class="h-full bg-orange-500 w-4/5 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Now playing card -->
+          <div
+            class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+          >
+            <h4 class="text-base font-medium text-slate-900 mb-3">
+              Now Playing
+            </h4>
+            <h3 class="text-xl font-semibold text-orange-600 mb-1">
+              Brandenburg Gate
+            </h3>
+            <p class="text-sm text-slate-600">
+              Historic monument and symbol of Berlin
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html> 

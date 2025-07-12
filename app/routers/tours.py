@@ -6,16 +6,16 @@ import uuid
 import io
 import base64
 
-from database import get_db
-from auth import get_current_active_user
-from models.user import User
-from schemas.tour import (
+from app.database import get_db
+from app.auth import get_current_active_user
+from app.models.user import User
+from app.schemas.tour import (
     TourGenerationRequest,
     TourGenerationResponse,
     TourResponse
 )
-from services.tour_service import tour_service, TourServiceError, TourNotFoundError
-from services.cache_service import cache_service
+from app.services.tour_service import tour_service, TourServiceError, TourNotFoundError
+from app.services.cache_service import cache_service
 
 router = APIRouter()
 

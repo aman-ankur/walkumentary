@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walkumentary – Subtitle Overlay (Light)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>body{font-family:'Inter',sans-serif}</style>
+  </head>
+  <!-- Represents what the user sees after hitting "Full-Screen Subtitles" on the light theme player -->
+  <body class="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+    <!-- Overlay header -->
+    <header class="flex items-center justify-between p-4 bg-white/90 backdrop-blur-sm border-b border-orange-100">
+      <div class="flex items-center gap-3">
+        <button class="w-8 h-8 rounded-full hover:bg-orange-100 text-slate-700 flex items-center justify-center" title="Close overlay"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <div>
+          <h2 class="font-semibold text-slate-900 leading-none">Historic Berlin Walking Tour</h2>
+          <p class="text-sm text-slate-600 leading-none">Berlin, Germany</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="w-8 h-8 rounded-full hover:bg-orange-100 text-slate-700 flex items-center justify-center" title="Toggle font size"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16M4 6h16M4 18h16"/></svg></button>
+        <button class="w-8 h-8 rounded-full hover:bg-orange-100 text-slate-700 flex items-center justify-center" title="Settings"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.054 0 1.918-.816 1.994-1.85L14 6h4a1 1 0 110 2h-4a2 2 0 11-4 0H6a1 1 0 110-2h4c.054 0 .108.004.161.012A2 2 0 1012 8zm0 8a2 2 0 100-4 2 2 0 000 4zm0 2a4 4 0 110-8 4 4 0 010 8z"/></svg></button>
+      </div>
+    </header>
+
+    <!-- Scrollable subtitles area -->
+    <main class="flex-1 overflow-y-auto px-6 py-10">
+      <div class="max-w-3xl mx-auto space-y-8">
+        <!-- Active subtitle (centered) -->
+        <div class="bg-orange-200/60 border-l-4 border-orange-500 shadow-lg py-6 px-6 rounded-xl scale-105">
+          <p class="text-2xl font-semibold text-slate-900">Welcome to Berlin, a city where history lives and breathes in every corner.</p>
+        </div>
+
+        <!-- Upcoming subtitles -->
+        <div class="bg-white/40 py-4 px-6 rounded-xl text-slate-700 hover:bg-white/60 cursor-pointer"><p class="text-xl">As we begin our journey, you'll discover the stories that shaped not just Germany, but the entire world.</p></div>
+        <div class="bg-white/30 py-4 px-6 rounded-xl text-slate-600 hover:bg-white/50 cursor-pointer"><p class="text-xl">Standing majestically at Pariser Platz, the Brandenburg Gate tells the story of a nation.</p></div>
+        <div class="bg-white/20 py-4 px-6 rounded-xl text-slate-600 hover:bg-white/40 cursor-pointer"><p class="text-xl">Built in 1791 by King Frederick William II, this neoclassical masterpiece has witnessed it all.</p></div>
+        <div class="bg-white/20 py-4 px-6 rounded-xl text-slate-600 hover:bg-white/40 cursor-pointer"><p class="text-xl">From Napoleon's triumphant march to the fall of the Berlin Wall.</p></div>
+        <!-- ... more lines -->
+        <div class="h-40"></div> <!-- bottom padding -->
+      </div>
+    </main>
+
+    <!-- Bottom progress indicator -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-5 py-2 rounded-full shadow-lg border border-orange-200 flex items-center gap-3 text-sm">
+      <span class="text-slate-600">3 / 50</span>
+      <div class="w-px h-4 bg-slate-300"></div>
+      <span class="text-orange-600 font-medium">02:34</span>
+    </div>
+  </body>
+</html> 

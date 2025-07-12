@@ -98,7 +98,7 @@ class CacheService:
         "memory" or "redis" explicitly for testing.
         """
 
-        from config import settings
+        from app.config import settings
 
         # Auto-detect backend
         chosen = backend or ("redis" if settings.REDIS_URL else "memory")

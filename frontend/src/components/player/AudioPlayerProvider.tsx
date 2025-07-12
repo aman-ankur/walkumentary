@@ -15,11 +15,13 @@ interface AudioPlayerContextValue {
   currentTime: number;
   duration: number;
   volume: number;
+  playbackRate: number;
   playTrack: (track: Track) => void;
   loadTrack: (track: Track) => void;
   togglePlay: () => void;
   seek: (time: number) => void;
   setVolume: (volume: number) => void;
+  setPlaybackRate: (rate: number) => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue | undefined>(undefined);
@@ -42,15 +44,29 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const persisted = localStorage.getItem("player-volume");
     return persisted ? Number(persisted) : 1;
   });
+  
+  const [playbackRate, _setPlaybackRate] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const persisted = localStorage.getItem("player-playback-rate");
+    return persisted ? Number(persisted) : 1;
+  });
 
-  // Update audio element volume when state changes
+  // Update audio element volume and playback rate when state changes
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume;
-  }, [volume]);
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+      audioRef.current.playbackRate = playbackRate;
+    }
+  }, [volume, playbackRate]);
 
   const setVolume = useCallback((v: number) => {
     _setVolume(v);
     if (typeof window !== "undefined") localStorage.setItem("player-volume", String(v));
+  }, []);
+
+  const setPlaybackRate = useCallback((rate: number) => {
+    _setPlaybackRate(rate);
+    if (typeof window !== "undefined") localStorage.setItem("player-playback-rate", String(rate));
   }, []);
 
   const playTrack = useCallback((track: Track) => {
@@ -116,11 +132,13 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     currentTime,
     duration,
     volume,
+    playbackRate,
     playTrack,
     loadTrack,
     togglePlay,
     seek,
     setVolume,
+    setPlaybackRate,
   };
 
   return (

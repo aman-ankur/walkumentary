@@ -16,9 +16,9 @@ from anthropic import AsyncAnthropic
 import aiohttp
 import time
 
-from config import settings, LLMProvider
-from services.cache_service import cache_service
-from services.usage_tracker import usage_tracker
+from .cache_service import cache_service
+from .usage_tracker import usage_tracker
+from app.config import settings, LLMProvider
 
 logger = logging.getLogger(__name__)
 

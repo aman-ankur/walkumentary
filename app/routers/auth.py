@@ -3,11 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 
-from database import get_db
-from auth import get_current_active_user, create_user, get_user_by_email
-from models.user import User
-from schemas.auth import UserResponse, UserPreferencesUpdate, AuthResponse
-from schemas.user import UserCreate, UserUpdate
+from app.database import get_db
+from app.auth import get_current_active_user, create_user, get_user_by_email
+from app.models.user import User
+from app.schemas.auth import UserResponse, UserPreferencesUpdate, AuthResponse
+from app.schemas.user import UserCreate, UserUpdate
 
 router = APIRouter()
 

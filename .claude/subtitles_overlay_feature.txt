@@ -1,0 +1,420 @@
+# Enhanced Subtitle Overlay Feature - Cursor IDE Implementation
+
+## Current Subtitle Display Analysis
+Looking at the reference image, I can see a clean, full-screen lyrics/subtitle display with:
+- Full-screen overlay with gradient background
+- Large, readable text with proper line spacing
+- Musical note indicators (♪) for rhythm/timing
+- Clean typography with emphasis on readability
+- Minimalist controls at the bottom
+- Progress indicator
+- Auto-scroll functionality that follows the audio
+
+## Detailed Implementation for Subtitle Overlay
+
+### Updated Component: `components/audio/SubtitleOverlay.tsx`
+
+```typescript
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { 
+  X, 
+  Settings, 
+  Type, 
+  RotateCcw,
+  Music
+} from 'lucide-react';
+
+interface SubtitleSegment {
+  startTime: number;
+  endTime: number;
+  text: string;
+  isVerse?: boolean;
+  isChorus?: boolean;
+  emphasis?: boolean;
+}
+
+interface SubtitleOverlayProps {
+  isOpen: boolean;
+  onClose: () => void;
+  subtitles: SubtitleSegment[];
+  currentTime: number;
+  onTimeSeek: (time: number) => void;
+  tourTitle: string;
+  location: string;
+}
+
+export function SubtitleOverlay({
+  isOpen,
+  onClose,
+  subtitles,
+  currentTime,
+  onTimeSeek,
+  tourTitle,
+  location
+}: SubtitleOverlayProps) {
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [fontSize, setFontSize] = useState('text-2xl'); // text-xl, text-2xl, text-3xl
+  const [showSettings, setShowSettings] = useState(false);
+  
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const activeSubtitleRef = useRef<HTMLDivElement>(null);
+
+  // Find current subtitle
+  const currentSubtitleIndex = subtitles.findIndex(
+    subtitle => currentTime >= subtitle.startTime && currentTime <= subtitle.endTime
+  );
+
+  // Find upcoming subtitles (next 3-4 lines)
+  const getVisibleSubtitles = () => {
+    const startIndex = Math.max(0, currentSubtitleIndex - 2);
+    const endIndex = Math.min(subtitles.length, currentSubtitleIndex + 8);
+    return subtitles.slice(startIndex, endIndex);
+  };
+
+  // Auto-scroll to current subtitle
+  useEffect(() => {
+    if (autoScroll && activeSubtitleRef.current && isOpen) {
+      activeSubtitleRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [currentSubtitleIndex, autoScroll, isOpen]);
+
+  const handleSubtitleClick = (subtitle: SubtitleSegment) => {
+    onTimeSeek(subtitle.startTime);
+  };
+
+  const toggleFontSize = () => {
+    const sizes = ['text-xl', 'text-2xl', 'text-3xl'];
+    const currentIndex = sizes.indexOf(fontSize);
+    const nextIndex = (currentIndex + 1) % sizes.length;
+    setFontSize(sizes[nextIndex]);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border-b border-orange-100">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-slate-600 hover:text-slate-900"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+          <div>
+            <h2 className="font-semibold text-slate-900">{tourTitle}</h2>
+            <p className="text-sm text-slate-600">{location}</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleFontSize}
+            className="text-slate-600 hover:text-slate-900"
+          >
+            <Type className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+            className="text-slate-600 hover:text-slate-900"
+          >
+            <Settings className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="p-4 bg-white/90 backdrop-blur-sm border-b border-orange-100">
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={autoScroll}
+                onChange={(e) => setAutoScroll(e.target.checked)}
+                className="rounded border-orange-300 text-orange-600 focus:ring-orange-500"
+              />
+              Auto-scroll
+            </label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFontSize('text-2xl')}
+              className="text-xs"
+            >
+              <RotateCcw className="w-3 h-3 mr-1" />
+              Reset View
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Subtitle Display */}
+      <div className="flex-1 relative overflow-hidden">
+        <ScrollArea 
+          className="h-full px-6 py-8" 
+          ref={scrollAreaRef}
+        >
+          <div className="max-w-4xl mx-auto space-y-6">
+            {subtitles.map((subtitle, index) => {
+              const isActive = index === currentSubtitleIndex;
+              const isPast = index < currentSubtitleIndex;
+              const isUpcoming = index > currentSubtitleIndex;
+              
+              return (
+                <div
+                  key={index}
+                  ref={isActive ? activeSubtitleRef : null}
+                  className={`
+                    transition-all duration-500 cursor-pointer py-3 px-4 rounded-xl
+                    ${isActive 
+                      ? 'bg-orange-200/50 text-slate-900 shadow-lg scale-105 border-l-4 border-orange-500' 
+                      : isPast 
+                        ? 'text-slate-500 hover:text-slate-700 bg-white/30' 
+                        : 'text-slate-600 hover:text-slate-800 bg-white/20'
+                    }
+                  `}
+                  onClick={() => handleSubtitleClick(subtitle)}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Time indicator */}
+                    <div className={`
+                      text-xs font-mono mt-1 min-w-[50px]
+                      ${isActive ? 'text-orange-700' : 'text-slate-400'}
+                    `}>
+                      {formatTime(subtitle.startTime)}
+                    </div>
+                    
+                    {/* Subtitle text */}
+                    <div className="flex-1">
+                      <p className={`
+                        ${fontSize} leading-relaxed font-medium
+                        ${isActive ? 'font-semibold' : ''}
+                        ${subtitle.emphasis ? 'font-bold' : ''}
+                      `}>
+                        {/* Add musical note for emphasis or rhythm */}
+                        {subtitle.isVerse && (
+                          <Music className="inline w-4 h-4 mr-2 text-orange-500" />
+                        )}
+                        {subtitle.text}
+                      </p>
+                      
+                      {/* Add subtle spacing for verses/choruses */}
+                      {subtitle.isChorus && (
+                        <div className="h-2 border-l-2 border-orange-300 ml-4 mt-2 opacity-50" />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            
+            {/* Bottom padding for better scrolling */}
+            <div className="h-64" />
+          </div>
+        </ScrollArea>
+
+        {/* Progress indicator overlay */}
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+          <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-orange-200">
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-slate-600">
+                {currentSubtitleIndex + 1} of {subtitles.length}
+              </span>
+              <div className="w-px h-4 bg-slate-300" />
+              <span className="text-orange-600 font-medium">
+                {formatTime(currentTime)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Enhanced Main Audio Player Integration
+
+**Update `EnhancedAudioPlayer.tsx` to include the new subtitle overlay:**
+
+```typescript
+// Add these imports at the top
+import { SubtitleOverlay } from './SubtitleOverlay';
+
+// Add this state in the component
+const [showSubtitleOverlay, setShowSubtitleOverlay] = useState(false);
+
+// Replace the existing Sheet-based subtitle section with this:
+{/* Subtitle Controls */}
+<div className="flex gap-2 mt-4">
+  <Button
+    variant="outline"
+    className="flex-1"
+    onClick={() => setShowSubtitleOverlay(true)}
+  >
+    <ChevronUp className="w-4 h-4 mr-2" />
+    Full Screen Subtitles
+  </Button>
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={() => setShowSubtitles(!showSubtitles)}
+  >
+    <List className="w-4 h-4" />
+  </Button>
+</div>
+
+{/* Add the SubtitleOverlay component */}
+<SubtitleOverlay
+  isOpen={showSubtitleOverlay}
+  onClose={() => setShowSubtitleOverlay(false)}
+  subtitles={subtitles}
+  currentTime={currentTime}
+  onTimeSeek={setCurrentTime}
+  tourTitle={tour.title}
+  location={tour.location}
+/>
+```
+
+### Enhanced Mock Data with Better Structure
+
+**Update `lib/mockAudioData.ts`:**
+
+```typescript
+export const mockSubtitles = [
+  {
+    startTime: 0,
+    endTime: 8,
+    text: "Welcome to the historic heart of Berlin",
+    isVerse: true
+  },
+  {
+    startTime: 8,
+    endTime: 16,
+    text: "Where centuries of history unfold before your eyes",
+    emphasis: false
+  },
+  {
+    startTime: 16,
+    endTime: 24,
+    text: "Standing majestically at Pariser Platz",
+    emphasis: false
+  },
+  {
+    startTime: 24,
+    endTime: 32,
+    text: "The Brandenburg Gate tells the story of a nation",
+    isVerse: true
+  },
+  {
+    startTime: 32,
+    endTime: 40,
+    text: "Built in 1791 by King Frederick William II",
+    emphasis: false
+  },
+  {
+    startTime: 40,
+    endTime: 48,
+    text: "This neoclassical masterpiece has witnessed it all",
+    emphasis: true
+  },
+  {
+    startTime: 48,
+    endTime: 56,
+    text: "From Napoleon's triumphant march",
+    emphasis: false
+  },
+  {
+    startTime: 56,
+    endTime: 64,
+    text: "To the fall of the Berlin Wall",
+    isChorus: true,
+    emphasis: true
+  },
+  {
+    startTime: 64,
+    endTime: 72,
+    text: "Each stone holds memories of triumph and tragedy",
+    emphasis: false
+  },
+  {
+    startTime: 72,
+    endTime: 80,
+    text: "Look up at the Quadriga",
+    isVerse: true
+  },
+  {
+    startTime: 80,
+    endTime: 88,
+    text: "The goddess Victoria driving her four-horse chariot",
+    emphasis: false
+  },
+  {
+    startTime: 88,
+    endTime: 96,
+    text: "Once stolen by Napoleon, now forever watching over Berlin",
+    emphasis: true
+  }
+];
+```
+
+### Key Features of This Implementation:
+
+1. **Full-Screen Experience**: Complete overlay that takes up the entire screen
+2. **Smart Auto-Scroll**: Automatically keeps current subtitle centered
+3. **Visual Hierarchy**: Clear distinction between current, past, and upcoming subtitles
+4. **Interactive Navigation**: Click any subtitle to jump to that timestamp
+5. **Customizable Display**: Font size adjustment and settings panel
+6. **Progress Tracking**: Shows current position and total progress
+7. **Responsive Design**: Works perfectly on all screen sizes
+8. **Smooth Animations**: Elegant transitions between states
+9. **Context Awareness**: Shows tour title and location
+10. **Accessibility**: Proper contrast, readable fonts, keyboard navigation
+
+### Styling Notes:
+- Uses the same warm color scheme (amber/orange) as your main app
+- Gradient background that matches your app's aesthetic
+- Smooth transitions and animations
+- Mobile-first responsive design
+- Clear typography hierarchy
+- Visual indicators for current position
+
+### Implementation Steps for Cursor IDE:
+
+1. **Create the SubtitleOverlay component** with the code above
+2. **Update your main audio player** to integrate the overlay
+3. **Enhance your mock data** with the structured subtitle format
+4. **Test the auto-scroll functionality** with different subtitle lengths
+5. **Verify mobile responsiveness** across different screen sizes
+6. **Add keyboard shortcuts** (optional: Space for play/pause, arrow keys for navigation)
+
+This implementation creates a premium subtitle experience similar to high-end streaming services while maintaining your app's travel-focused aesthetic.

@@ -14,7 +14,13 @@ class LLMProvider(str, Enum):
     ANTHROPIC = "anthropic"
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8")
+    # Load variables from either .env OR .env.local (first one found) and
+    # ignore any extra keys that are not defined in this Settings model.
+    model_config = SettingsConfigDict(
+        env_file=(".env", ".env.local"),
+        env_file_encoding="utf-8",
+        extra="allow",
+    )
     
     # App Configuration
     APP_NAME: str = "Walkumentary API"

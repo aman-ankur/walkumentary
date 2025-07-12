@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
-from config import settings, LLMProvider
-from services.cache_service import cache_service
+from .cache_service import cache_service
+from app.config import settings, LLMProvider
 
 logger = logging.getLogger(__name__)
 

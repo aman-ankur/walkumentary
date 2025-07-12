@@ -38,6 +38,12 @@ export function LocationSearch({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const userLocationRef = useRef<[number, number] | null>(null);
+  
+  // Update ref when user location changes
+  useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
   
   // Debounce search query
   const debouncedQuery = useDebounce(query, 300);
@@ -63,18 +69,18 @@ export function LocationSearch({
       });
       
       // Add user location for proximity search if available
-      if (userLocation) {
-        params.append("coordinates", `${userLocation[0]},${userLocation[1]}`);
-        console.log('Added user coordinates:', userLocation);
+      if (userLocationRef.current) {
+        params.append("coordinates", `${userLocationRef.current[0]},${userLocationRef.current[1]}`);
+        console.log('Added user coordinates:', userLocationRef.current);
       }
       
       const searchUrl = `/locations/search?${params}`;
       console.log('Making API call to:', searchUrl);
       
-      const response = await api.get(searchUrl, false); // No auth required for search
+      const response = await api.get<SearchResult>(searchUrl); // Parse JSON and expect SearchResult
       console.log('Search API response:', response);
       
-      setResults((response as any).data || response);
+      setResults(response);
     } catch (err) {
       console.error("Search error:", err);
       setError("Failed to search locations. Please try again.");
@@ -82,12 +88,14 @@ export function LocationSearch({
     } finally {
       setIsLoading(false);
     }
-  }, [userLocation]);
+  }, []); // Remove userLocation dependency to prevent re-creation
   
   // Effect to trigger search when debounced query changes
   useEffect(() => {
-    searchLocations(debouncedQuery);
-  }, [debouncedQuery, searchLocations]);
+    if (debouncedQuery) {
+      searchLocations(debouncedQuery);
+    }
+  }, [debouncedQuery]); // Remove searchLocations dependency to prevent infinite re-renders
   
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,7 +229,10 @@ export function LocationSearch({
             disabled={isGPSLoading}
           />
           {isLoading && (
-            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+            <Loader2 
+              data-testid="search-loading"
+              className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" 
+            />
           )}
         </div>
         
@@ -266,7 +277,7 @@ export function LocationSearch({
           ) : results ? (
             <div className="py-2">
               {/* Locations */}
-              {results.locations.length > 0 && (
+              {results.locations && results.locations.length > 0 && (
                 <div className="border-b border-gray-100 pb-2 mb-2">
                   <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Locations
@@ -308,7 +319,7 @@ export function LocationSearch({
               )}
               
               {/* Suggestions */}
-              {results.suggestions.length > 0 && (
+              {results.suggestions && results.suggestions.length > 0 && (
                 <div>
                   <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Suggestions

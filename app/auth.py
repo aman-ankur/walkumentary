@@ -9,9 +9,9 @@ import httpx
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import settings
-from models.user import User
-from database import get_db
+from app.config import settings
+from app.models.user import User
+from app.database import get_db
 
 # Security setup
 security = HTTPBearer()

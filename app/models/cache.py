@@ -1,10 +1,11 @@
 from sqlalchemy import Column, String, Text, DateTime, Integer
 from sqlalchemy.sql import func
 
-from models.base import BaseModel
+from app.models.base import BaseModel
 
 class CacheEntry(BaseModel):
     __tablename__ = "cache_entries"
+    __table_args__ = {'extend_existing': True}
     
     cache_key = Column(String, unique=True, index=True, nullable=False)
     cache_value = Column(Text, nullable=False)

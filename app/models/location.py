@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, DECIMAL, JSON, Index
 from sqlalchemy.orm import relationship
 
-from models.base import BaseModel
+from app.models.base import BaseModel
 
 class Location(BaseModel):
     __tablename__ = "locations"
@@ -25,12 +25,13 @@ class Location(BaseModel):
     image_url = Column(String, nullable=True)
     
     # Relationships
-    tours = relationship("Tour", back_populates="location")
+    tours = relationship("app.models.tour.Tour", back_populates="location")
     
     # Indexes for geographic queries
     __table_args__ = (
         Index('ix_location_coordinates', 'latitude', 'longitude'),
         Index('ix_location_country_city', 'country', 'city'),
+        {'extend_existing': True}
     )
     
     @property

@@ -5,9 +5,9 @@ from contextlib import asynccontextmanager
 import uvicorn
 import logging
 
-from database import init_db, close_db
-from routers import auth_router, health_router, locations_router, tours_router, admin_router
-from config import settings
+from app.database import init_db, close_db
+from app.routers import auth_router, health_router, locations_router, tours_router, admin_router
+from app.config import settings
 
 # ----------------------- Logging Setup -----------------------
 # Configure root logger based on settings.LOG_LEVEL (default INFO)

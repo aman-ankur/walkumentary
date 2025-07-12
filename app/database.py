@@ -4,7 +4,8 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy import MetaData
 import logging
 
-from config import settings
+# Relative import to app.config for consistent package resolution
+from app.config import settings
 
 # Create async engine
 engine = create_async_engine(
@@ -40,6 +41,9 @@ convention = {
 metadata = MetaData(naming_convention=convention)
 Base = declarative_base(metadata=metadata)
 
+# Import models with absolute package path
+from app.models import user, location, tour, cache
+
 # Database dependency for FastAPI
 async def get_db() -> AsyncSession:
     async with AsyncSessionLocal() as session:
@@ -57,8 +61,6 @@ async def init_db():
     """Initialize database tables"""
     async with engine.begin() as conn:
         # Import all models to ensure they're registered
-        from models import user, location, tour, cache
-        
         # Create all tables
         await conn.run_sync(Base.metadata.create_all)
         

@@ -1,11 +1,12 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, ARRAY, Text, JSON
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Integer, ForeignKey, Text, JSON
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 
-from models.base import BaseModel
+from app.models.base import BaseModel
 
 class Tour(BaseModel):
     __tablename__ = "tours"
+    __table_args__ = {'extend_existing': True}
     
     # Basic tour information
     title = Column(String, nullable=False)
@@ -14,10 +15,11 @@ class Tour(BaseModel):
     
     # Audio information
     audio_url = Column(String, nullable=True)
+    transcript = Column(JSON, nullable=True)  # Array of transcript segments
     duration_minutes = Column(Integer, nullable=False)
     
     # Tour preferences
-    interests = Column(ARRAY(String), default=[])
+    interests = Column(JSON, default=[])
     language = Column(String, default="en", nullable=False)
     
     # AI generation metadata
@@ -33,5 +35,5 @@ class Tour(BaseModel):
     location_id = Column(UUID(as_uuid=True), ForeignKey("locations.id"), nullable=False)
     
     # Relationships
-    user = relationship("User", back_populates="tours")
-    location = relationship("Location", back_populates="tours")
+    user = relationship("app.models.user.User", back_populates="tours")
+    location = relationship("app.models.location.Location", back_populates="tours")

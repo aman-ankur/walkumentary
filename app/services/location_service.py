@@ -8,9 +8,10 @@ from urllib.parse import urlencode
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text, func
 
-from models.location import Location
-from schemas.location import LocationResponse
-from services.cache_service import cache_service
+from app.models.location import Location
+from app.schemas.location import LocationResponse
+from .cache_service import cache_service
+from app.config import settings
 import uuid
 
 class LocationService:
