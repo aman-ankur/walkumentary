@@ -31,8 +31,10 @@ export function EnhancedAudioPlayer({ tour }: EnhancedAudioPlayerProps) {
     currentTime,
     duration,
     volume,
+    playbackRate,
     seek,
     setVolume,
+    setPlaybackRate,
   } = useAudioPlayer();
 
   const skip = (delta: number) => {
@@ -43,6 +45,26 @@ export function EnhancedAudioPlayer({ tour }: EnhancedAudioPlayerProps) {
     const m = Math.floor(time / 60);
     const s = Math.floor(time % 60);
     return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const handleDownloadTranscript = () => {
+    if (!tour?.transcript?.length) return;
+    
+    const transcriptText = tour.transcript
+      .map((segment: any, index: number) => 
+        `${index + 1}. ${segment.text}`
+      )
+      .join('\n\n');
+    
+    const blob = new Blob([transcriptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${tour.title || 'tour'}-transcript.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -137,8 +159,28 @@ export function EnhancedAudioPlayer({ tour }: EnhancedAudioPlayerProps) {
         <VolumeControl 
           volume={volume} 
           onVolumeChange={setVolume} 
-          className="mb-6"
+          className="mb-4"
         />
+
+        {/* Playback Speed Control */}
+        <div className="flex items-center justify-between mb-6">
+          <span className="text-sm font-medium text-gray-700">Playback Speed</span>
+          <div className="flex items-center gap-1">
+            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+              <button
+                key={speed}
+                onClick={() => setPlaybackRate(speed)}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                  playbackRate === speed
+                    ? "bg-orange-500 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700"
+                }`}
+              >
+                {speed}x
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Subtitle buttons */}
         <div className="flex gap-2">
@@ -152,6 +194,8 @@ export function EnhancedAudioPlayer({ tour }: EnhancedAudioPlayerProps) {
           <button 
             className="w-10 h-10 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!tour?.transcript?.length}
+            onClick={handleDownloadTranscript}
+            title="Download transcript"
           >
             <svg 
               className="w-4 h-4" 
@@ -163,7 +207,7 @@ export function EnhancedAudioPlayer({ tour }: EnhancedAudioPlayerProps) {
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
-                d="M4 6h16M4 12h16M4 18h7"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
           </button>
