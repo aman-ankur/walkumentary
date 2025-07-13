@@ -170,11 +170,8 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      const { error } = await signInWithGoogle();
+      await signInWithGoogle();
       
-      if (error) {
-        setError(error.message);
-      }
       // Note: onAuthStateChange will handle the success case
     } catch (error) {
       console.error('Sign in error:', error);
@@ -189,11 +186,8 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabaseSignOut();
+      await supabaseSignOut();
       
-      if (error) {
-        setError(error.message);
-      }
       // Note: onAuthStateChange will handle the success case
     } catch (error) {
       console.error('Sign out error:', error);
