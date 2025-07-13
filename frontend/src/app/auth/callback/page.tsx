@@ -8,28 +8,17 @@ export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      console.log('🔐 Auth callback page loaded');
-      console.log('📍 URL hash:', window.location.hash);
-      
-      // If there's no hash, just redirect
-      if (!window.location.hash) {
-        console.log('❌ No hash found, redirecting to home');
-        router.push('/');
-        return;
-      }
-      
-      console.log('⏳ Waiting for Supabase to process hash tokens...');
-      
-      // Wait for Supabase to automatically process the hash
-      // This gives time for the auth state change listener to fire
-      setTimeout(() => {
-        console.log('✅ Redirecting to home - auth hook will handle session');
-        router.push('/');
-      }, 2000);
-    };
-
-    handleAuthCallback();
+    console.log('🔐 Auth callback page loaded');
+    console.log('📍 URL hash:', window.location.hash);
+    
+    // With detectSessionInUrl: true, Supabase automatically processes the hash
+    // Just wait a moment and redirect - the auth state listener will handle the rest
+    const timer = setTimeout(() => {
+      console.log('✅ Redirecting to home - Supabase should auto-detect session');
+      router.push('/');
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, [router]);
 
   return (
