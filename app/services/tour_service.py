@@ -146,17 +146,24 @@ class TourService:
             # ----------------- 1.5. Process walkable stops (if present) -----------------
             geocoded_stops = []
             try:
+                logger.info("Starting walkable stops processing...")
                 geocoded_stops = await self._process_walkable_tour_content(content_data, location)
                 if geocoded_stops:
                     logger.info(f"Successfully processed {len(geocoded_stops)} walkable stops")
                     
                     # Update tour with walkable stops data
+                    logger.info("Saving walkable stops data...")
                     await self._save_walkable_stops(tour_id, content_data, geocoded_stops)
+                    logger.info("Walkable stops data saved successfully")
                 else:
                     logger.info("No walkable stops to process or geocoding failed")
             except Exception as e:
-                logger.warning(f"Failed to process walkable stops: {e}")
+                logger.error(f"Failed to process walkable stops: {e}")
+                import traceback
+                logger.error(f"Walkable stops processing traceback: {traceback.format_exc()}")
                 # Continue with tour generation even if walkable stops fail
+            
+            logger.info("Proceeding to audio generation...")
 
             # ----------------- 2. Generate audio (TTS) ---------------------
             audio_data: Optional[bytes] = None
@@ -729,19 +736,33 @@ class TourService:
 
     async def _save_walkable_stops(self, tour_id: uuid.UUID, content_data: dict, geocoded_stops: list):
         """Save walkable stops data to the tour"""
-        from app.database import AsyncSessionLocal
-        async with AsyncSessionLocal() as db:
-            result = await db.execute(select(Tour).where(Tour.id == tour_id))
-            tour = result.scalar_one_or_none()
-            if tour:
-                # Save walkable stops data
-                tour.walkable_stops = geocoded_stops
-                tour.total_walking_distance = content_data.get("total_walking_distance")
-                tour.estimated_walking_time = content_data.get("estimated_walking_time")
-                tour.difficulty_level = content_data.get("difficulty_level", "easy")
-                tour.route_type = "walkable"
-                await db.commit()
-                logger.info(f"Saved walkable stops data for tour {tour_id}")
+        try:
+            from app.database import AsyncSessionLocal
+            async with AsyncSessionLocal() as db:
+                result = await db.execute(select(Tour).where(Tour.id == tour_id))
+                tour = result.scalar_one_or_none()
+                if tour:
+                    # Save walkable stops data - check if fields exist
+                    try:
+                        tour.walkable_stops = geocoded_stops
+                        tour.total_walking_distance = content_data.get("total_walking_distance")
+                        tour.estimated_walking_time = content_data.get("estimated_walking_time")
+                        tour.difficulty_level = content_data.get("difficulty_level", "easy")
+                        tour.route_type = "walkable"
+                        await db.commit()
+                        logger.info(f"Saved walkable stops data for tour {tour_id}")
+                    except Exception as field_error:
+                        logger.error(f"Error saving walkable fields for tour {tour_id}: {field_error}")
+                        # If database schema issues, continue without saving walkable data
+                        await db.rollback()
+                        raise field_error
+                else:
+                    logger.error(f"Tour {tour_id} not found when saving walkable stops")
+        except Exception as e:
+            logger.error(f"Critical error in _save_walkable_stops for tour {tour_id}: {e}")
+            import traceback
+            logger.error(f"_save_walkable_stops traceback: {traceback.format_exc()}")
+            raise e
 
     async def _process_walkable_tour_content(self, content_data: dict, location: dict) -> list:
         """Process AI-generated content to extract and geocode walkable stops"""
@@ -795,19 +816,19 @@ class TourService:
     async def _geocode_stop(self, stop: dict, main_location: dict) -> Optional[dict]:
         """Geocode individual stop using location service"""
         
-        # Build search query with stop name and approximate address
-        search_parts = [stop.get('name', '')]
+        # Build simplified search query - complex queries are failing
+        stop_name = stop.get('name', '')
+        city = main_location.get('city', '')
+        country = main_location.get('country', '')
         
-        if stop.get('approximate_address'):
-            search_parts.append(stop['approximate_address'])
-            
-        # Add main location context
-        if main_location.get('city'):
-            search_parts.append(main_location['city'])
-        if main_location.get('country'):
-            search_parts.append(main_location['country'])
-            
-        search_query = ', '.join(filter(None, search_parts))
+        # Try different query variations, starting with simplest
+        search_queries = [
+            f"{stop_name}, {city}",  # Simple: "Eiffel Tower, Paris"
+            f"{stop_name}, {city}, {country}",  # Medium: "Eiffel Tower, Paris, France"
+            stop_name  # Fallback: just the name
+        ]
+        
+        search_query = search_queries[0]  # Start with the simplest
         
         try:
             # Use existing location service search with proximity to main location
@@ -817,27 +838,32 @@ class TourService:
             elif 'latitude' in main_location and 'longitude' in main_location:
                 main_coords = [main_location['latitude'], main_location['longitude']]
             
-            logger.info(f"Geocoding stop '{stop.get('name', 'unknown')}' with query: '{search_query}' near {main_coords}")
-            
-            search_result = await location_service.search_locations(
-                query=search_query,
-                coordinates=main_coords,
-                radius=2000,  # 2km radius for walkable tours
-                limit=1
-            )
-            
-            logger.info(f"Search result for '{stop.get('name', 'unknown')}': {search_result}")
-            
-            if search_result and search_result.get("locations") and len(search_result["locations"]) > 0:
-                result = search_result["locations"][0]
-                logger.info(f"Successfully geocoded '{stop.get('name', 'unknown')}' to lat={result['latitude']}, lng={result['longitude']}")
-                return {
-                    "lat": result["latitude"],
-                    "lng": result["longitude"],
-                    "accuracy": "geocoded"
-                }
-            else:
-                logger.warning(f"No results found for stop '{stop.get('name', 'unknown')}' with query '{search_query}'")
+            # Try different query formats until one succeeds
+            for query in search_queries:
+                if not query.strip():
+                    continue
+                    
+                logger.info(f"Geocoding stop '{stop.get('name', 'unknown')}' with query: '{query}' near {main_coords}")
+                
+                search_result = await location_service.search_locations(
+                    query=query,
+                    coordinates=main_coords,
+                    radius=2000,  # 2km radius for walkable tours
+                    limit=1
+                )
+                
+                logger.info(f"Search result for '{stop.get('name', 'unknown')}': {search_result}")
+                
+                if search_result and search_result.get("locations") and len(search_result["locations"]) > 0:
+                    result = search_result["locations"][0]
+                    logger.info(f"Successfully geocoded '{stop.get('name', 'unknown')}' to lat={result['latitude']}, lng={result['longitude']}")
+                    return {
+                        "lat": result["latitude"],
+                        "lng": result["longitude"],
+                        "accuracy": "geocoded"
+                    }
+                else:
+                    logger.warning(f"No results found for stop '{stop.get('name', 'unknown')}' with query '{query}'")
                 
         except Exception as e:
             logger.error(f"Exception while geocoding stop {stop.get('name', 'unknown')}: {e}")
@@ -857,6 +883,10 @@ class TourService:
             lat1, lon1 = loc1.get('latitude', 0), loc1.get('longitude', 0)
             
         lat2, lon2 = loc2.get('lat', 0), loc2.get('lng', 0)
+        
+        # Check for invalid coordinates (0,0 means geocoding failed)
+        if (lat1 == 0 and lon1 == 0) or (lat2 == 0 and lon2 == 0):
+            return float('inf')  # Return infinite distance for invalid coordinates
         
         # Convert to radians
         lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
