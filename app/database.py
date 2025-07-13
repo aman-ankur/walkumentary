@@ -8,6 +8,20 @@ import logging
 from app.config import settings
 
 # Create async engine
+# Determine connect_args based on database type
+if "sqlite" in settings.DATABASE_URL:
+    # SQLite specific configuration
+    connect_args = {"check_same_thread": False}
+    poolclass = StaticPool
+elif "supabase.co" in settings.DATABASE_URL or "pooler" in settings.DATABASE_URL:
+    # Supabase with pgbouncer - disable prepared statements to avoid conflicts
+    connect_args = {"statement_cache_size": 0}
+    poolclass = None
+else:
+    # Regular PostgreSQL
+    connect_args = {}
+    poolclass = None
+
 engine = create_async_engine(
     settings.database_url_async,
     pool_size=settings.DATABASE_POOL_SIZE,
@@ -15,9 +29,8 @@ engine = create_async_engine(
     pool_pre_ping=True,
     # Disable SQL statement echo; detailed logs can be enabled by LOG_LEVEL or setting SQL_DEBUG env
     echo=False,
-    # For SQLite testing
-    poolclass=StaticPool if "sqlite" in settings.DATABASE_URL else None,
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
+    poolclass=poolclass,
+    connect_args=connect_args,
 )
 
 # Create sessionmaker
