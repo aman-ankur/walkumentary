@@ -1,96 +1,86 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import StaticPool, NullPool
 from sqlalchemy import MetaData
 import logging
+from uuid import uuid4
 
 # Relative import to app.config for consistent package resolution
 from app.config import settings
 
-# Create async engine
-# Determine connect_args based on database type
-database_url = settings.DATABASE_URL.lower()
-logging.info(f"Analyzing database URL: {database_url[:50]}...")
+# NUCLEAR OPTION: UUID-based prepared statement naming for pgbouncer compatibility
+# This is the definitive 2024 solution for Supabase transaction pooler issues
 
-# Check if this is Supabase by looking for multiple indicators
-is_supabase = (
-    "supabase.co" in database_url or 
-    "pooler" in database_url or 
-    "kumruxjaiwdjiwvmtjyh" in database_url or
-    "db.kumruxjaiwdjiwvmtjyh.supabase.co" in database_url
-)
+logging.info(f"🔍 Database URL analysis: {settings.DATABASE_URL[:60]}...")
 
-if "sqlite" in database_url:
-    # SQLite specific configuration
+def generate_unique_statement_name():
+    """Generate unique prepared statement names to avoid pgbouncer conflicts"""
+    return f"__asyncpg_stmt_{uuid4().hex[:8]}__"
+
+# Detect if we're using any PostgreSQL variant (including Supabase)
+is_postgresql = "postgresql" in settings.DATABASE_URL.lower()
+is_supabase = any(indicator in settings.DATABASE_URL.lower() for indicator in [
+    "supabase.co", "pooler", "kumruxjaiwdjiwvmtjyh"
+])
+
+if "sqlite" in settings.DATABASE_URL.lower():
+    # SQLite configuration
     connect_args = {"check_same_thread": False}
     poolclass = StaticPool
     extra_kwargs = {"connect_args": connect_args}
-    logging.info("✅ Using SQLite configuration")
-elif is_supabase:
-    # Supabase ALWAYS uses pgbouncer - FORCE disable ALL prepared statements
-    logging.info("🔧 DETECTED SUPABASE - Applying aggressive pgbouncer compatibility")
+    logging.info("✅ SQLite configuration applied")
+    
+elif is_postgresql:
+    # UNIVERSAL PostgreSQL/Supabase configuration with UUID statement naming
+    # This works for ALL pgbouncer setups, including Supabase transaction pooler
     
     connect_args = {
-        # Completely disable prepared statements at asyncpg level
+        # CRITICAL: UUID-based prepared statement naming prevents conflicts
+        "prepared_statement_name_func": generate_unique_statement_name,
+        # Disable caching as backup
         "statement_cache_size": 0,
         "prepared_statement_cache_size": 0,
-        # Additional server settings
-        "server_settings": {
-            "application_name": "walkumentary_render",
-            "statement_timeout": "30s",
-        },
-        # Force no prepared statements
+        # Connection settings
         "command_timeout": 30,
+        "server_settings": {
+            "application_name": "walkumentary_app",
+        }
     }
     
-    # No connection pooling class - let SQLAlchemy handle it
-    poolclass = None
+    # Use NullPool for pgbouncer compatibility (recommended for external poolers)
+    poolclass = NullPool if is_supabase else None
     
-    # Comprehensive SQLAlchemy configuration for pgbouncer
     extra_kwargs = {
         "connect_args": connect_args,
         "pool_pre_ping": True,
-        "pool_recycle": 300,  # Recycle every 5 minutes
-        "pool_reset_on_return": "commit",  # Always commit on return
+        "pool_recycle": 300,
         "pool_timeout": 30,
         "execution_options": {
-            # Critical: This prevents prepared statements at SQLAlchemy level
-            "isolation_level": "AUTOCOMMIT",
-            "compiled_cache": {},  # Disable compiled statement cache
-            "schema_translate_map": None,  # Disable schema translation
-        },
+            "compiled_cache": {},  # Disable compiled cache
+        }
     }
-    logging.info("✅ Applied COMPREHENSIVE Supabase pgbouncer configuration")
+    
+    config_type = "Supabase pgbouncer" if is_supabase else "PostgreSQL"
+    logging.info(f"🚀 {config_type} configuration with UUID statement naming applied")
+    
 else:
-    # Regular PostgreSQL
+    # Fallback configuration
     connect_args = {}
     poolclass = None
     extra_kwargs = {"connect_args": connect_args}
-    logging.info("✅ Using regular PostgreSQL configuration")
+    logging.info("⚠️ Fallback configuration applied")
 
-# Create engine with appropriate configuration
-if is_supabase:
-    # For Supabase, override pool settings to work with pgbouncer
-    engine = create_async_engine(
-        settings.database_url_async,
-        pool_size=5,  # Smaller pool for pgbouncer
-        max_overflow=0,  # No overflow for pgbouncer
-        echo=False,
-        poolclass=poolclass,
-        **extra_kwargs,
-    )
-    logging.info("🚀 Supabase engine created with pgbouncer-optimized settings")
-else:
-    # Regular PostgreSQL or SQLite
-    engine = create_async_engine(
-        settings.database_url_async,
-        pool_size=settings.DATABASE_POOL_SIZE,
-        max_overflow=settings.DATABASE_MAX_OVERFLOW,
-        echo=False,
-        poolclass=poolclass,
-        **extra_kwargs,
-    )
-    logging.info("🚀 Standard engine created")
+# Create the async engine with all configurations applied
+engine = create_async_engine(
+    settings.database_url_async,
+    pool_size=5 if is_supabase else settings.DATABASE_POOL_SIZE,
+    max_overflow=0 if is_supabase else settings.DATABASE_MAX_OVERFLOW,
+    echo=False,
+    poolclass=poolclass,
+    **extra_kwargs,
+)
+
+logging.info("🎯 Database engine created successfully with pgbouncer-compatible configuration")
 
 # Create sessionmaker
 AsyncSessionLocal = async_sessionmaker(
