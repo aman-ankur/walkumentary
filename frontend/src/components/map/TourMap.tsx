@@ -4,37 +4,43 @@ import { MapContainer } from './MapContainer';
 import { LocationMarker } from './LocationMarker';
 import { UserLocationMarker } from './UserLocationMarker';
 import { POIMarker } from './POIMarker';
+import { WalkableStopMarker } from './WalkableStopMarker';
+import { WalkingRoute } from './WalkingRoute';
 import { TourLocation, POILocation } from './types';
+import { Tour, WalkableStop } from '@/lib/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useNearbyLocations } from '@/hooks/useNearbyLocations';
 import { useAudioPlayer } from '@/components/player/AudioPlayerProvider';
 import { LatLngExpression } from 'leaflet';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface TourMapProps {
-  tour: {
-    location: {
-      name: string;
-      latitude: number;
-      longitude: number;
-      description?: string;
-      location_type?: string;
-    };
-    title: string;
-    description?: string;
-  };
+  tour: Tour;
   className?: string;
   showUserLocation?: boolean;
   showNearbyPOIs?: boolean;
+  showWalkableStops?: boolean;
+  showWalkingRoute?: boolean;
+  activeStopIndex?: number;
+  onStopClick?: (stop: WalkableStop, index: number) => void;
 }
 
-export function TourMap({ tour, className = '', showUserLocation = true, showNearbyPOIs = false }: TourMapProps) {
+export function TourMap({ 
+  tour, 
+  className = '', 
+  showUserLocation = true, 
+  showNearbyPOIs = false,
+  showWalkableStops = true,
+  showWalkingRoute = true,
+  activeStopIndex,
+  onStopClick
+}: TourMapProps) {
   const { location: userLocation, isLoading: isLoadingLocation } = useGeolocation();
   const { isPlaying, currentTime } = useAudioPlayer();
   
   // Debug logging
   console.log('TourMap rendered with tour:', tour);
-  console.log('Tour location coordinates:', tour.location.latitude, tour.location.longitude);
+  console.log('Tour location coordinates:', tour.location?.latitude, tour.location?.longitude);
   
   // Fetch nearby POIs around the tour location
   const { 
@@ -52,14 +58,14 @@ export function TourMap({ tour, className = '', showUserLocation = true, showNea
   // Convert tour data to our map format
   const tourLocation: TourLocation = {
     id: 'tour-location',
-    name: tour.location.name,
+    name: tour.location?.name || tour.title,
     title: tour.title,
     coordinates: {
-      latitude: tour.location.latitude,
-      longitude: tour.location.longitude,
+      latitude: tour.location?.latitude || 0,
+      longitude: tour.location?.longitude || 0,
     },
-    description: tour.location.description || tour.description,
-    type: tour.location.location_type || 'tour',
+    description: tour.location?.description || tour.description,
+    type: tour.location?.location_type || 'tour',
   };
 
   // Fetch nearby POIs when tour location is available
@@ -123,6 +129,30 @@ export function TourMap({ tour, className = '', showUserLocation = true, showNea
           />
         ))}
 
+        {/* Walking route visualization */}
+        {showWalkingRoute && tour.walkable_stops && tour.walkable_stops.length > 0 && tour.location && (
+          <WalkingRoute
+            mainLocation={tour.location}
+            walkableStops={tour.walkable_stops}
+            isActive={isPlaying}
+            activeStopIndex={activeStopIndex}
+          />
+        )}
+
+        {/* Walkable stop markers */}
+        {showWalkableStops && tour.walkable_stops && tour.walkable_stops.map((stop, index) => (
+          <WalkableStopMarker
+            key={`walkable-stop-${index}`}
+            stop={stop}
+            index={index + 1}
+            isActive={activeStopIndex === index}
+            onClick={() => {
+              console.log('Walkable stop clicked:', stop);
+              onStopClick?.(stop, index);
+            }}
+          />
+        ))}
+
         {/* User location marker - show if location available and enabled */}
         {showUserLocation && userLocation && (
           <UserLocationMarker 
@@ -139,6 +169,39 @@ export function TourMap({ tour, className = '', showUserLocation = true, showNea
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
             Finding your location...
+          </div>
+        </div>
+      )}
+
+      {/* Tour information panel for walkable tours */}
+      {tour.walkable_stops && tour.walkable_stops.length > 0 && (
+        <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-orange-200">
+          <div className="text-sm">
+            <div className="font-semibold text-orange-800 mb-1">Walking Tour</div>
+            <div className="text-gray-600 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-orange-600">•</span>
+                <span>{tour.walkable_stops.length} stops</span>
+              </div>
+              {tour.total_walking_distance && (
+                <div className="flex items-center gap-2">
+                  <span className="text-orange-600">🚶</span>
+                  <span>{tour.total_walking_distance}</span>
+                </div>
+              )}
+              {tour.estimated_walking_time && (
+                <div className="flex items-center gap-2">
+                  <span className="text-orange-600">⏱️</span>
+                  <span>{tour.estimated_walking_time}</span>
+                </div>
+              )}
+              {tour.difficulty_level && (
+                <div className="flex items-center gap-2">
+                  <span className="text-orange-600">📊</span>
+                  <span className="capitalize">{tour.difficulty_level}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

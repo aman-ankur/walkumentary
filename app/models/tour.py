@@ -30,6 +30,13 @@ class Tour(BaseModel):
     # Status
     status = Column(String, default="generating")  # generating, ready, error
     
+    # Walkable tour information
+    walkable_stops = Column(JSON, nullable=True)  # Array of stop objects with coordinates
+    total_walking_distance = Column(String, nullable=True)  # "1.2 km"
+    estimated_walking_time = Column(String, nullable=True)  # "15 minutes"
+    difficulty_level = Column(String, default="easy")  # easy/moderate/challenging
+    route_type = Column(String, default="walkable")  # walkable/driving/mixed
+    
     # Foreign keys
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     location_id = Column(UUID(as_uuid=True), ForeignKey("locations.id"), nullable=False)

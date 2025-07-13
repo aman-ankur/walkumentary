@@ -41,6 +41,13 @@ class TourResponse(TourBase, IDMixin, TimestampMixin):
     status: str
     user_id: uuid.UUID
     
+    # Walkable tour fields
+    walkable_stops: Optional[List[dict]] = Field(None, description="Array of walkable stops with coordinates")
+    total_walking_distance: Optional[str] = Field(None, description="Total walking distance (e.g., '1.2 km')")
+    estimated_walking_time: Optional[str] = Field(None, description="Estimated walking time (e.g., '15 minutes')")
+    difficulty_level: Optional[str] = Field("easy", description="Walking difficulty level")
+    route_type: Optional[str] = Field("walkable", description="Type of tour route")
+    
     class Config:
         from_attributes = True
 
