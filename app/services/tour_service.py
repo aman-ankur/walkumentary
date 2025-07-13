@@ -810,23 +810,32 @@ class TourService:
             elif 'latitude' in main_location and 'longitude' in main_location:
                 main_coords = [main_location['latitude'], main_location['longitude']]
             
-            results = await location_service.search_locations(
+            logger.info(f"Geocoding stop '{stop.get('name', 'unknown')}' with query: '{search_query}' near {main_coords}")
+            
+            search_result = await location_service.search_locations(
                 query=search_query,
                 coordinates=main_coords,
                 radius=2000,  # 2km radius for walkable tours
                 limit=1
             )
             
-            if results and len(results) > 0:
-                result = results[0]
+            logger.info(f"Search result for '{stop.get('name', 'unknown')}': {search_result}")
+            
+            if search_result and search_result.get("locations") and len(search_result["locations"]) > 0:
+                result = search_result["locations"][0]
+                logger.info(f"Successfully geocoded '{stop.get('name', 'unknown')}' to lat={result['latitude']}, lng={result['longitude']}")
                 return {
                     "lat": result["latitude"],
                     "lng": result["longitude"],
                     "accuracy": "geocoded"
                 }
+            else:
+                logger.warning(f"No results found for stop '{stop.get('name', 'unknown')}' with query '{search_query}'")
                 
         except Exception as e:
-            logger.warning(f"Failed to geocode stop {stop.get('name', 'unknown')}: {e}")
+            logger.error(f"Exception while geocoding stop {stop.get('name', 'unknown')}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
         
         return None
 
