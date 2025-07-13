@@ -95,10 +95,28 @@ export function TourStatusTracker({
         if (onTourReady) {
           onTourReady(fullTour);
         }
-      } else if (statusResponse.status === 'content_ready' && !tour) {
-        // Text is ready; load content so UI can preview. Do NOT call onTourReady yet.
+      } else if (statusResponse.status === 'content_ready') {
+        // Content is ready - fetch tour and check if audio is ready too
         const fullTour = await api.getTour(tourId);
         setTour(fullTour);
+        
+        // Check if tour has audio URL or if sufficient time has passed for audio generation
+        const hasAudio = fullTour?.audio_url != null;
+        const tourAge = Date.now() - new Date(fullTour?.created_at).getTime();
+        const audioGenerationTime = 60000; // 1 minute for audio generation
+        
+        if (hasAudio || tourAge > audioGenerationTime) {
+          console.log('Tour content_ready with audio, treating as complete');
+          stopPolling();
+          
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+          
+          if (onTourReady) {
+            onTourReady(fullTour);
+          }
+        }
       } else if (statusResponse.status === 'error') {
         setError('Tour generation failed. Please try again.');
         stopPolling();

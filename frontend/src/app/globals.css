@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet map styles */
+@import 'leaflet/dist/leaflet.css';
+
+/* Mobile-optimized map styles */
+.leaflet-container {
+  touch-action: pan-x pan-y;
+}
+
+/* Improve touch targets for mobile */
+.leaflet-control-zoom a {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 16px !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  margin: 8px 12px;
+  line-height: 1.4;
+}
+
+/* Responsive popup sizing */
+@media (max-width: 640px) {
+  .leaflet-popup-content-wrapper {
+    max-width: 250px;
+  }
+  
+  .leaflet-control-zoom a {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

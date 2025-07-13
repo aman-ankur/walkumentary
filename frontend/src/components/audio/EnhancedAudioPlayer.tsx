@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAudioPlayer } from "@/components/player/AudioPlayerProvider";
 import { TourArtwork } from "@/components/audio/TourArtwork";
@@ -23,6 +23,11 @@ export interface EnhancedAudioPlayerProps {
  */
 export function EnhancedAudioPlayer({ tour }: EnhancedAudioPlayerProps) {
   const [subtitleOpen, setSubtitleOpen] = useState(false);
+  
+  // Debug subtitle state changes
+  useEffect(() => {
+    console.log('SubtitleOverlay state changed:', subtitleOpen);
+  }, [subtitleOpen]);
 
   // Player state comes from AudioPlayerProvider
   const {
@@ -68,7 +73,7 @@ export function EnhancedAudioPlayer({ tour }: EnhancedAudioPlayerProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col">
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col relative">
       {/* Artwork */}
       <div className="h-56 md:h-72">
         <TourArtwork 

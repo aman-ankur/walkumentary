@@ -8,6 +8,20 @@ import { useAudioPlayer } from "@/components/player/AudioPlayerProvider";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { EnhancedAudioPlayer } from "@/components/audio/EnhancedAudioPlayer";
+import dynamic from "next/dynamic";
+import { getTourCover } from "@/lib/artwork";
+
+const SimpleTourMap = dynamic(
+  () => import("@/components/map/SimpleTourMap").then(mod => ({ default: mod.SimpleTourMap })),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full bg-gray-100 flex items-center justify-center rounded-xl">
+        <div className="text-gray-500">Loading map...</div>
+      </div>
+    )
+  }
+);
 
 export default function TourPlayerPage() {
   const { tourId } = useParams<{ tourId: string }>();
@@ -20,12 +34,39 @@ export default function TourPlayerPage() {
   useEffect(() => {
     const fetchTour = async () => {
       try {
+        console.log('Fetching tour with ID:', tourId);
         const t = await api.getTour(tourId);
+        console.log('Tour fetched:', t);
+        console.log('Tour location data:', t.location);
+        console.log('Tour coordinates:', t.location?.latitude, t.location?.longitude);
         setTour(t);
-        if (t.audio_url) {
-          loadTrack({ src: t.audio_url, title: t.title, cover: t.location.image_url });
+        
+        // Try to load audio, with fallback URL construction if audio_url is missing
+        let audioUrl = t.audio_url;
+        if (!audioUrl) {
+          // Construct audio URL from tour ID as fallback using the API base URL
+          const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+          audioUrl = `${baseUrl}/tours/${tourId}/audio`;
+          console.log('No audio_url in tour data, trying constructed URL:', audioUrl);
         }
+        
+        const coverImage = getTourCover(t);
+        console.log('Loading audio track:', audioUrl);
+        console.log('Audio track details:', { src: audioUrl, title: t.title, cover: coverImage });
+        
+        // Test if audio URL is accessible
+        fetch(audioUrl, { method: 'HEAD' })
+          .then(response => {
+            console.log('Audio URL accessibility test:', response.status, response.statusText);
+            console.log('Audio response headers:', Object.fromEntries(response.headers.entries()));
+          })
+          .catch(error => {
+            console.error('Audio URL accessibility test failed:', error);
+          });
+        
+        loadTrack({ src: audioUrl, title: t.title, cover: coverImage });
       } catch (e) {
+        console.error('Failed to load tour:', e);
         alert("Failed to load tour");
         router.back();
       } finally {
@@ -44,13 +85,28 @@ export default function TourPlayerPage() {
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">{tour.title}</h1>
-          <p className="text-gray-600">{tour.description || "AI-generated walking tour"}</p>
+          <p className="text-gray-600">
+            {tour.description && tour.description !== "Tour content is being generated" 
+              ? tour.description 
+              : "AI-generated walking tour"}
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Map placeholder */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[500px] lg:col-span-2 flex items-center justify-center">
-            <span className="text-gray-400">[Map coming soon]</span>
+          {/* Interactive Map */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[400px] sm:h-[500px] lg:col-span-2">
+            {tour && tour.location && tour.location.latitude && tour.location.longitude ? (
+              <SimpleTourMap tour={tour} className="h-full" />
+            ) : (
+              <div className="h-full w-full bg-gray-100 flex flex-col items-center justify-center">
+                <div className="text-gray-500 mb-2">Map loading error</div>
+                <div className="text-sm text-gray-400">
+                  Tour: {tour ? '✓' : '✗'}, 
+                  Location: {tour?.location ? '✓' : '✗'}, 
+                  Coords: {tour?.location?.latitude ? '✓' : '✗'}/{tour?.location?.longitude ? '✓' : '✗'}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Audio player */}
@@ -59,18 +115,16 @@ export default function TourPlayerPage() {
               <EnhancedAudioPlayer tour={tour} />
             ) : (
               <div className="bg-orange-500 rounded-2xl p-8 text-white shadow-lg">
-                {tour.location.image_url && (
-                  <div className="relative w-full h-40 mb-6 rounded-xl overflow-hidden"> 
-                    <Image src={tour.location.image_url} alt={tour.location.name} fill className="object-cover" />
-                  </div>
-                )}
+                <div className="relative w-full h-40 mb-6 rounded-xl overflow-hidden"> 
+                  <Image src={getTourCover(tour)} alt={tour.location?.name || tour.title} fill className="object-cover" />
+                </div>
                 <h3 className="text-xl font-bold text-center mb-2">{tour.title}</h3>
                 <p className="text-orange-100 text-center text-sm mb-8">Generated by Walkumentary AI</p>
 
                 {/* Time labels */}
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
+                  <span>{formatTime(duration)} {isNaN(duration) ? '(NaN)' : ''} {!isFinite(duration) ? '(∞)' : ''}</span>
                 </div>
 
                 {/* Progress slider */}
@@ -110,7 +164,7 @@ export default function TourPlayerPage() {
 }
 
 function formatTime(t?: number) {
-  if (!t || isNaN(t)) return "0:00";
+  if (!t || isNaN(t) || !isFinite(t)) return "0:00";
   const m = Math.floor(t / 60);
   const s = Math.floor(t % 60).toString().padStart(2, "0");
   return `${m}:${s}`;

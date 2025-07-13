@@ -50,8 +50,8 @@ export function SubtitleOverlay({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl max-w-2xl w-full p-6 space-y-4">
+    <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto rounded-2xl">
+      <div className="bg-white rounded-xl max-w-lg w-full p-4 space-y-3 max-h-[90%] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold text-gray-900">Transcript</h2>
           <Button size="sm" variant="ghost" onClick={onClose}>
@@ -64,7 +64,7 @@ export function SubtitleOverlay({
         ) : (
           <div 
             ref={scrollContainerRef}
-            className="space-y-2 max-h-[70vh] overflow-y-auto"
+            className="space-y-2 flex-1 overflow-y-auto"
           >
             {subtitles.map((s, idx) => (
               <div

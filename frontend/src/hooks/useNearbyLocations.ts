@@ -146,12 +146,15 @@ export function useNearbyLocations(options: UseNearbyLocationsOptions = {}) {
         return;
       }
 
-      console.error("Nearby locations error:", error);
+      console.warn("Nearby locations error:", error);
       setState(prev => ({
         ...prev,
         isLoading: false,
         error: error.message || "Failed to fetch nearby locations",
       }));
+      
+      // Don't retry immediately to prevent overwhelming the server
+      return;
     } finally {
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
