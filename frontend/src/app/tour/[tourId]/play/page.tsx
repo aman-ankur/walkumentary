@@ -45,7 +45,7 @@ export default function TourPlayerPage() {
         let audioUrl = t.audio_url;
         if (!audioUrl) {
           // Construct audio URL from tour ID as fallback using the API base URL
-          const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+          const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://walkumentary-backend.onrender.com";
           audioUrl = `${baseUrl}/tours/${tourId}/audio`;
           console.log('No audio_url in tour data, trying constructed URL:', audioUrl);
         }
