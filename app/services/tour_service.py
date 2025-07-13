@@ -612,8 +612,7 @@ class TourService:
                 "updated_at": tour.updated_at
             }
             
-            # Debug logging to see what we're returning
-            logger.info(f"Status endpoint returning for tour {tour.id}: {status_response}")
+# Removed debug logging - issues identified and fixed
             
             return status_response
             
