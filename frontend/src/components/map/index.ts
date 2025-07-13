@@ -3,6 +3,7 @@ export { LocationMarker } from './LocationMarker';
 export { UserLocationMarker } from './UserLocationMarker';
 export { POIMarker } from './POIMarker';
 export { TourMap } from './TourMap';
+export { DynamicTourMap } from './DynamicTourMap';
 export type { 
   MapLocation, 
   TourLocation, 

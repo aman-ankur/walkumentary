@@ -1,10 +1,20 @@
 "use client";
 
-import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 import { MapContainerProps } from './types';
-import { useEffect } from 'react';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import react-leaflet components to avoid SSR issues
+const DynamicMapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+
+const DynamicTileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+);
 
 // Default center (New York City)
 const DEFAULT_CENTER: LatLngExpression = [40.7128, -74.0060];
@@ -21,8 +31,12 @@ export function MapContainer({
   style,
   children 
 }: ExtendedMapContainerProps) {
+  const [isClient, setIsClient] = useState(false);
+
   // Fix Leaflet default marker icons in Next.js
   useEffect(() => {
+    setIsClient(true);
+    
     if (typeof window !== 'undefined') {
       // Dynamic import to avoid SSR issues
       import('leaflet').then((L) => {
@@ -36,9 +50,18 @@ export function MapContainer({
     }
   }, []);
 
+  // Don't render map on server side
+  if (!isClient) {
+    return (
+      <div className={`relative ${className} flex items-center justify-center bg-gray-100`} style={style}>
+        <div className="text-gray-500">Loading map...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative ${className}`} style={style}>
-      <LeafletMapContainer
+      <DynamicMapContainer
         center={center}
         zoom={zoom}
         style={{ 
@@ -56,14 +79,14 @@ export function MapContainer({
         className="focus:outline-none"
       >
         {/* OpenStreetMap tiles */}
-        <TileLayer
+        <DynamicTileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
         />
         
         {children}
-      </LeafletMapContainer>
+      </DynamicTileLayer>
     </div>
   );
 }

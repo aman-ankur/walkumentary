@@ -1,8 +1,19 @@
 "use client";
 
-import { Marker, Popup } from 'react-leaflet';
 import { Icon, LatLngExpression } from 'leaflet';
 import { POILocation } from './types';
+import dynamic from 'next/dynamic';
+
+// Dynamically import react-leaflet components
+const DynamicMarker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+);
+
+const DynamicPopup = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Popup),
+  { ssr: false }
+);
 
 // Create custom icon for POI locations
 const createPOIIcon = (category: string = 'default') => {
@@ -49,14 +60,14 @@ export function POIMarker({ location, onClick }: POIMarkerProps) {
   };
 
   return (
-    <Marker 
+    <DynamicMarker 
       position={position} 
       icon={createPOIIcon(location.category)}
       eventHandlers={{
         click: handleClick,
       }}
     >
-      <Popup>
+      <DynamicPopup>
         <div className="min-w-[180px] p-2">
           <h4 className="font-semibold text-gray-900 mb-1">{location.name}</h4>
           {location.description && (
@@ -75,7 +86,7 @@ export function POIMarker({ location, onClick }: POIMarkerProps) {
             )}
           </div>
         </div>
-      </Popup>
-    </Marker>
+      </DynamicPopup>
+    </DynamicMarker>
   );
 }

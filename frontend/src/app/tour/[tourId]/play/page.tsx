@@ -8,7 +8,7 @@ import { useAudioPlayer } from "@/components/player/AudioPlayerProvider";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { EnhancedAudioPlayer } from "@/components/audio/EnhancedAudioPlayer";
-import { TourMap } from "@/components/map";
+import { DynamicTourMap } from "@/components/map";
 
 export default function TourPlayerPage() {
   const { tourId } = useParams<{ tourId: string }>();
@@ -51,7 +51,7 @@ export default function TourPlayerPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Interactive Map */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[400px] sm:h-[500px] lg:col-span-2">
-            <TourMap tour={tour} className="h-full" showNearbyPOIs={true} />
+            <DynamicTourMap tour={tour} className="h-full" showNearbyPOIs={true} />
           </div>
 
           {/* Audio player */}
