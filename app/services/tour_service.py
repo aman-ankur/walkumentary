@@ -718,11 +718,11 @@ class TourService:
                 await db.commit()
 
     def _truncate_for_tts(self, text: str) -> str:
-        """Trim text to ~2500 chars so TTS returns faster and end cleanly on a sentence."""
-        max_len = 2500
+        """Trim text to OpenAI TTS character limit and end cleanly on a sentence."""
+        max_len = 4096  # OpenAI TTS actual limit
         t = text[:max_len]
         if len(text) > max_len:
-            # Try to avoid cutting words; backtrack to last period in the last 20 % of slice
+            # Try to avoid cutting words; backtrack to last period in the last 20% of slice
             last_period = t.rfind('.')
             if last_period > int(max_len * 0.8):
                 t = t[: last_period + 1]

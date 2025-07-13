@@ -57,14 +57,14 @@ class AIService:
         self.provider_configs = {
             LLMProvider.OPENAI: {
                 "model": settings.OPENAI_MODEL,
-                "max_tokens": 2000,
+                "max_tokens": 4000,
                 "temperature": 0.7,
                 "top_p": 0.9,
                 "cost_per_1k_tokens": 0.000765,  # GPT-4o-mini average
             },
             LLMProvider.ANTHROPIC: {
                 "model": settings.ANTHROPIC_MODEL,
-                "max_tokens": 2000,
+                "max_tokens": 4000,
                 "temperature": 0.7,
                 "cost_per_1k_tokens": 0.001375,  # Claude Haiku average
             }
