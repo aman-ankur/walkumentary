@@ -361,12 +361,12 @@ class TourService:
                     "user_id": str(tour.user_id),
                     "created_at": tour.created_at.isoformat() if tour.created_at else None,
                     "updated_at": tour.updated_at.isoformat() if tour.updated_at else None,
-                    # Walkable tour fields
-                    "walkable_stops": tour.walkable_stops or [],
-                    "total_walking_distance": tour.total_walking_distance,
-                    "estimated_walking_time": tour.estimated_walking_time,
-                    "difficulty_level": tour.difficulty_level or "easy",
-                    "route_type": tour.route_type or "walkable",
+                    # Walkable tour fields (safely handle missing attributes)
+                    "walkable_stops": getattr(tour, 'walkable_stops', None) or [],
+                    "total_walking_distance": getattr(tour, 'total_walking_distance', None),
+                    "estimated_walking_time": getattr(tour, 'estimated_walking_time', None),
+                    "difficulty_level": getattr(tour, 'difficulty_level', None) or "easy",
+                    "route_type": getattr(tour, 'route_type', None) or "walkable",
                     "location": {
                         "id": str(tour.location.id),
                         "name": tour.location.name,
@@ -753,18 +753,24 @@ class TourService:
                 if tour:
                     # Save walkable stops data - check if fields exist
                     try:
-                        tour.walkable_stops = geocoded_stops
-                        tour.total_walking_distance = content_data.get("total_walking_distance")
-                        tour.estimated_walking_time = content_data.get("estimated_walking_time")
-                        tour.difficulty_level = content_data.get("difficulty_level", "easy")
-                        tour.route_type = "walkable"
+                        # Check if walkable fields exist before setting them
+                        if hasattr(tour, 'walkable_stops'):
+                            tour.walkable_stops = geocoded_stops
+                        if hasattr(tour, 'total_walking_distance'):
+                            tour.total_walking_distance = content_data.get("total_walking_distance")
+                        if hasattr(tour, 'estimated_walking_time'):
+                            tour.estimated_walking_time = content_data.get("estimated_walking_time")
+                        if hasattr(tour, 'difficulty_level'):
+                            tour.difficulty_level = content_data.get("difficulty_level", "easy")
+                        if hasattr(tour, 'route_type'):
+                            tour.route_type = "walkable"
                         await db.commit()
                         logger.info(f"Saved walkable stops data for tour {tour_id}")
                     except Exception as field_error:
                         logger.error(f"Error saving walkable fields for tour {tour_id}: {field_error}")
                         # If database schema issues, continue without saving walkable data
                         await db.rollback()
-                        raise field_error
+                        logger.warning("Continuing without saving walkable data - database schema might be missing fields")
                 else:
                     logger.error(f"Tour {tour_id} not found when saving walkable stops")
         except Exception as e:
@@ -779,9 +785,24 @@ class TourService:
             # Extract structured stops from AI response
             walkable_stops = content_data.get("walkable_stops", [])
             
-            if not walkable_stops:
-                logger.info("No walkable stops found in AI response")
+            # Validate walkable stops format
+            if not walkable_stops or not isinstance(walkable_stops, list):
+                logger.info("No walkable stops found in AI response or invalid format")
                 return []
+            
+            # Filter out invalid stop entries
+            valid_stops = []
+            for stop in walkable_stops:
+                if isinstance(stop, dict) and stop.get('name'):
+                    valid_stops.append(stop)
+                else:
+                    logger.warning(f"Skipping invalid stop entry: {stop}")
+            
+            if not valid_stops:
+                logger.info("No valid walkable stops found after validation")
+                return []
+            
+            walkable_stops = valid_stops
             
             # Geocode each stop using existing location service
             geocoded_stops = []
@@ -938,6 +959,9 @@ class TourService:
         
         for i in range(len(route_locations) - 1):
             leg_distance = self._calculate_walking_distance(route_locations[i], route_locations[i+1])
+            # Skip infinite distances (failed geocoding)
+            if leg_distance == float('inf'):
+                continue
             leg_distances.append(leg_distance)
             total_distance += leg_distance
         
