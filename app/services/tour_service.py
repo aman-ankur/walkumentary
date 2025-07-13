@@ -153,8 +153,12 @@ class TourService:
                     
                     # Update tour with walkable stops data
                     logger.info("Saving walkable stops data...")
-                    await self._save_walkable_stops(tour_id, content_data, geocoded_stops)
-                    logger.info("Walkable stops data saved successfully")
+                    try:
+                        await self._save_walkable_stops(tour_id, content_data, geocoded_stops)
+                        logger.info("Walkable stops data saved successfully")
+                    except Exception as save_error:
+                        logger.error(f"Failed to save walkable stops: {save_error}")
+                        # Continue with tour generation even if saving walkable stops fails
                 else:
                     logger.info("No walkable stops to process or geocoding failed")
             except Exception as e:
@@ -598,7 +602,7 @@ class TourService:
             # Force refresh from database to ensure we have latest status
             await db.refresh(tour)
             
-            return {
+            status_response = {
                 "tour_id": tour.id,
                 "status": tour.status,
                 "title": tour.title,
@@ -607,6 +611,11 @@ class TourService:
                 "created_at": tour.created_at,
                 "updated_at": tour.updated_at
             }
+            
+            # Debug logging to see what we're returning
+            logger.info(f"Status endpoint returning for tour {tour.id}: {status_response}")
+            
+            return status_response
             
         except Exception as e:
             logger.error(f"Failed to get tour status {tour_id}: {str(e)}")
@@ -802,14 +811,18 @@ class TourService:
                     logger.error(f"Error geocoding stop {i+1} ({stop.get('name', 'unknown')}): {e}")
                     continue
             
-            # Validate walking feasibility
+            # Validate walking feasibility - temporarily disabled to debug
             if geocoded_stops:
-                feasibility = self._validate_walking_feasibility([location] + geocoded_stops)
-                logger.info(f"Route feasibility: {feasibility}")
-                
-                if not feasibility["is_feasible"]:
-                    logger.warning(f"Route not feasible: {feasibility['total_distance']:.0f}m total distance")
-                    # Still return the stops but log the warning
+                try:
+                    feasibility = self._validate_walking_feasibility([location] + geocoded_stops)
+                    logger.info(f"Route feasibility: {feasibility}")
+                    
+                    if not feasibility["is_feasible"]:
+                        logger.warning(f"Route not feasible: {feasibility.get('total_distance', 'unknown')}m total distance")
+                        # Still return the stops but log the warning
+                except Exception as feasibility_error:
+                    logger.warning(f"Route feasibility check failed: {feasibility_error}")
+                    # Continue anyway - feasibility check is not critical
             
             logger.info(f"Successfully processed {len(geocoded_stops)}/{len(walkable_stops)} walkable stops")
             return geocoded_stops
