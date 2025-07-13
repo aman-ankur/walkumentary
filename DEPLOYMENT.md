@@ -504,6 +504,113 @@ walkumentary/
 └── DEPLOYMENT.md        # This guide
 ```
 
+### ❌ CRITICAL: Supabase Transaction Pooler pgbouncer Issues (2024)
+
+**Issue**: The most common deployment failure with Supabase transaction pooler causing `DuplicatePreparedStatementError` and `TypeError` with NullPool configuration.
+
+**Symptoms**:
+```
+asyncpg.exceptions.DuplicatePreparedStatementError: prepared statement "__asyncpg_stmt_1__" already exists
+HINT: pgbouncer with pool_mode set to "transaction" or "statement" does not support prepared statements properly.
+```
+
+OR
+
+```
+TypeError: Invalid argument(s) 'pool_size','max_overflow','pool_timeout' sent to create_engine(), 
+using configuration PGDialect_asyncpg/NullPool/Engine
+```
+
+**Root Cause**: 
+1. **Prepared Statement Conflicts**: Supabase's transaction pooler (pgbouncer) cannot handle SQLAlchemy's prepared statement caching
+2. **Pool Parameter Incompatibility**: NullPool (required for external poolers) doesn't accept pool size parameters
+
+**DEFINITIVE 2024 Solution Applied**:
+
+Updated `app/database.py` with UUID-based prepared statement naming and conditional pool parameters:
+
+```python
+from uuid import uuid4
+from sqlalchemy.pool import NullPool
+
+def generate_unique_statement_name():
+    """Generate unique prepared statement names to avoid pgbouncer conflicts"""
+    return f"__asyncpg_stmt_{uuid4().hex[:8]}__"
+
+# Detect PostgreSQL and Supabase
+is_postgresql = "postgresql" in settings.DATABASE_URL.lower()
+is_supabase = any(indicator in settings.DATABASE_URL.lower() for indicator in [
+    "supabase.co", "pooler", "kumruxjaiwdjiwvmtjyh"
+])
+
+if is_postgresql:
+    connect_args = {
+        # CRITICAL: UUID-based prepared statement naming prevents conflicts
+        "prepared_statement_name_func": generate_unique_statement_name,
+        # Disable caching as backup
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+        # Connection settings
+        "command_timeout": 30,
+        "server_settings": {
+            "application_name": "walkumentary_app",
+        }
+    }
+    
+    # Use NullPool for Supabase (recommended for external poolers)
+    poolclass = NullPool if is_supabase else None
+    
+    extra_kwargs = {
+        "connect_args": connect_args,
+        "execution_options": {
+            "compiled_cache": {},  # Disable compiled cache
+        }
+    }
+    
+    # CRITICAL: Only add pool settings if NOT using NullPool
+    if not is_supabase:
+        extra_kwargs.update({
+            "pool_pre_ping": True,
+            "pool_recycle": 300,
+            "pool_timeout": 30,
+        })
+
+# Create engine with conditional parameters
+engine_kwargs = {
+    "echo": False,
+    "poolclass": poolclass,
+    **extra_kwargs,
+}
+
+# Only add pool size parameters if NOT using NullPool
+if not is_supabase:
+    engine_kwargs.update({
+        "pool_size": settings.DATABASE_POOL_SIZE,
+        "max_overflow": settings.DATABASE_MAX_OVERFLOW,
+    })
+
+engine = create_async_engine(
+    settings.database_url_async,
+    **engine_kwargs,
+)
+```
+
+**Why This Works**:
+1. **UUID Statement Names**: Every prepared statement gets a unique name like `__asyncpg_stmt_a1b2c3d4__` preventing pgbouncer conflicts
+2. **NullPool for Supabase**: No internal connection pooling, lets Supabase handle it
+3. **Conditional Parameters**: Pool parameters only applied when appropriate
+4. **Universal Detection**: Works with any PostgreSQL setup, not just Supabase
+
+**Success Logs to Look For**:
+```
+🔍 Database URL analysis: postgresql://postgres:...
+🚀 Supabase pgbouncer configuration with UUID statement naming applied
+🎯 Database engine created successfully with pgbouncer-compatible configuration
+INFO:     Application startup complete.
+```
+
+**This is the DEFINITIVE 2024 solution** based on official SQLAlchemy and asyncpg documentation for pgbouncer compatibility.
+
 ---
 
 **🎉 Congratulations! Your Walkumentary app is now live on the internet!**

@@ -40,15 +40,19 @@ elif is_postgresql:
         # Disable caching as backup
         "statement_cache_size": 0,
         "prepared_statement_cache_size": 0,
-        # Connection settings
-        "command_timeout": 30,
+        # Connection settings optimized for Supabase/pgbouncer
+        "command_timeout": 60,  # Longer timeout for Supabase
         "server_settings": {
             "application_name": "walkumentary_app",
+            "tcp_keepalives_idle": "300",
+            "tcp_keepalives_interval": "30", 
+            "tcp_keepalives_count": "3",
         }
     }
     
-    # Use NullPool for pgbouncer compatibility (recommended for external poolers)
-    poolclass = NullPool if is_supabase else None
+    # Use StaticPool for Supabase to avoid connection timeout issues
+    # NullPool causes TimeoutError on connection close with pgbouncer
+    poolclass = StaticPool if is_supabase else None
     
     extra_kwargs = {
         "connect_args": connect_args,
@@ -57,13 +61,12 @@ elif is_postgresql:
         }
     }
     
-    # Only add pool-related settings if NOT using NullPool
-    if not is_supabase:  # Regular PostgreSQL gets pool settings
-        extra_kwargs.update({
-            "pool_pre_ping": True,
-            "pool_recycle": 300,
-            "pool_timeout": 30,
-        })
+    # Add pool-related settings (StaticPool can handle these)
+    extra_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_recycle": 300,  # Recycle connections every 5 minutes for Supabase
+        "pool_timeout": 30,
+    })
     
     config_type = "Supabase pgbouncer" if is_supabase else "PostgreSQL"
     logging.info(f"🚀 {config_type} configuration with UUID statement naming applied")
@@ -82,8 +85,15 @@ engine_kwargs = {
     **extra_kwargs,
 }
 
-# Only add pool size parameters if NOT using NullPool (Supabase uses external pooling)
-if not is_supabase:
+# Add pool size parameters (StaticPool and regular pools can handle these)
+if is_supabase:
+    # Smaller pool for Supabase with StaticPool
+    engine_kwargs.update({
+        "pool_size": 1,  # StaticPool uses single connection
+        "max_overflow": 0,
+    })
+else:
+    # Regular PostgreSQL pool settings
     engine_kwargs.update({
         "pool_size": settings.DATABASE_POOL_SIZE,
         "max_overflow": settings.DATABASE_MAX_OVERFLOW,
