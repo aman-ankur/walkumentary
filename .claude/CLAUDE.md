@@ -192,6 +192,61 @@ claude-code "Update the auth system" # Could fail if files don't exist
 
 ## Known Issues & Workarounds
 
+### CRITICAL: Supabase Authentication Configuration (RESOLVED - July 14, 2025)
+**Problem**: Authentication flow hanging with "Completing authentication..." message after OAuth redirect
+**Root Cause**: Supabase client not configured for automatic URL hash detection in Next.js App Router
+**Solution**: Configure Supabase client with proper auth options
+
+#### Essential Supabase Configuration (frontend/src/lib/supabase.ts):
+```typescript
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // CRITICAL: Enable automatic URL hash detection
+    detectSessionInUrl: true,
+    autoRefreshToken: true,
+    persistSession: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'walkumentary-auth-token',
+  }
+})
+```
+
+#### Auth Callback Implementation (frontend/src/app/auth/callback/page.tsx):
+```typescript
+// Simple callback - let Supabase handle hash detection
+useEffect(() => {
+  const timer = setTimeout(() => {
+    router.push('/');  // Redirect after 1 second
+  }, 1000);
+  return () => clearTimeout(timer);
+}, [router]);
+```
+
+#### Required OAuth Configuration:
+**Google Console - Authorized JavaScript origins:**
+- `http://localhost:3000`
+- `https://walkumentary-frontend.vercel.app` (without trailing slash)
+
+**Google Console - Authorized redirect URIs:**
+- `https://kumruxjaiwdjiwvmtjyh.supabase.co/auth/v1/callback`
+- `https://walkumentary-frontend.vercel.app/auth/callback`
+- `http://localhost:3000/auth/callback`
+
+**Supabase Dashboard - Site URL:**
+- `https://walkumentary-frontend.vercel.app/`
+
+**Supabase Dashboard - Redirect URLs:**
+- `https://walkumentary-frontend.vercel.app/auth/callback`
+
+#### Symptoms of Incorrect Configuration:
+- Auth callback page loads but never redirects
+- `getSession()` calls hang indefinitely  
+- No auth state change events fire
+- Console shows "Auth initialization timeout"
+
+#### Key Learning:
+Modern Supabase (v2.38.0+) requires explicit `detectSessionInUrl: true` configuration to automatically process OAuth hash fragments in Next.js App Router. Without this, the session detection fails silently.
+
 ### Cursor Integration Crashes
 **Problem**: Claude Code crashes with "String not found in file" even when using Write tool
 **Cause**: Node.js v23.x compatibility issues with Cursor integration
