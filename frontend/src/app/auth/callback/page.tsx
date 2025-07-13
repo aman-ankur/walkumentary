@@ -2,21 +2,32 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('🔐 Auth callback page loaded');
-    console.log('📍 Current URL:', window.location.href);
-    
-    // Give Supabase time to process the hash tokens before redirecting
-    const timer = setTimeout(() => {
-      console.log('🚀 Redirecting to home page');
-      router.push('/');
-    }, 1500); // 1.5 second delay to ensure hash is processed
-    
-    return () => clearTimeout(timer);
+    const handleAuthCallback = async () => {
+      try {
+        console.log('🔐 Processing auth callback...');
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Auth callback error:', error);
+          router.push('/?error=auth_error');
+          return;
+        }
+
+        console.log('✅ Auth callback completed:', !!data.session);
+        router.push('/');
+      } catch (error) {
+        console.error('❌ Auth callback error:', error);
+        router.push('/?error=auth_error');
+      }
+    };
+
+    handleAuthCallback();
   }, [router]);
 
   return (
