@@ -114,7 +114,7 @@ export function UserProfile() {
             />
           ) : (
             <p className="text-sm text-muted-foreground">
-              {user.preferences?.interests?.length > 0 
+              {user.preferences?.interests && user.preferences.interests.length > 0 
                 ? user.preferences.interests.join(', ') 
                 : 'None set'}
             </p>

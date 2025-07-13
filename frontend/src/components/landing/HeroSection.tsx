@@ -44,14 +44,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onLocationSelect }) =>
 
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12 max-w-2xl mx-auto">
-          <GPSLocationDetector onLocationSelect={onLocationSelect} autoStart={false}>
-            {(startDetect) => (
-              <Button onClick={startDetect} variant="primary" className="flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-xl">
-                <Navigation className="w-5 h-5" />
-                Use Current Location
-              </Button>
-            )}
-          </GPSLocationDetector>
+          <div className="flex-1">
+            <GPSLocationDetector onLocationSelect={onLocationSelect} autoStart={false} />
+          </div>
 
           <Button variant="outline" className="flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-xl">
             <Camera className="w-5 h-5" />

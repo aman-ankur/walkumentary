@@ -26,7 +26,7 @@ export const Header = () => {
 
         {/* Auth CTA */}
         <div className="hidden md:block">
-          <AuthButton variant="primary" size="sm" />
+          <AuthButton variant="default" size="sm" />
         </div>
       </div>
     </header>
