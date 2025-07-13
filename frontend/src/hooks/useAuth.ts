@@ -86,59 +86,44 @@ export function useAuth() {
 
   // Initialize auth state
   useEffect(() => {
-    const initializeAuth = async () => {
-      console.log('🚀 Auth initialization starting...');
-      
-      // Set a fallback timeout to ensure loading doesn't hang forever
-      const fallbackTimeout = setTimeout(() => {
-        console.log('⏰ Fallback timeout - ensuring loading is false');
-        setLoading(false);
-      }, 3000);
-      
-      try {
-        // Try to get session, but don't hang on it
-        console.log('📡 Attempting getSession()...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        clearTimeout(fallbackTimeout);
-        
-        console.log('✅ Got session:', { 
-          hasSession: !!session, 
-          hasUser: !!session?.user, 
-          userEmail: session?.user?.email,
-          error: error?.message 
-        });
-        
-        if (error) {
-          console.error('❌ Auth initialization error:', error);
-          setError(error.message);
-          setLoading(false);
-          return;
-        }
+    console.log('🚀 Auth initialization starting...');
+    
+    // Set loading to false after a short delay to prevent infinite loading
+    // The auth state change listener will handle actual authentication
+    const initTimeout = setTimeout(() => {
+      console.log('⏰ Auth init timeout - setting loading to false');
+      setLoading(false);
+    }, 2000);
 
-        if (session?.user) {
-          console.log('🎉 Found existing session:', session.user.email);
+    // Try to get existing session (but don't hang on it)
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        clearTimeout(initTimeout);
+        
+        if (!error && session?.user) {
+          console.log('🎉 Found existing session for:', session.user.email);
           setState(prev => ({ 
             ...prev, 
             supabaseUser: session.user, 
             session 
           }));
-          
-          // Fetch user profile from our API
           await fetchUserProfile(session.user);
         } else {
-          console.log('ℹ️ No existing session - waiting for auth state changes');
+          console.log('ℹ️ No existing session found');
           setLoading(false);
         }
       } catch (error) {
-        clearTimeout(fallbackTimeout);
-        console.error('❌ Auth initialization error:', error);
-        setError('Failed to initialize authentication');
+        console.log('⚠️ getSession() failed, relying on auth state listener');
+        clearTimeout(initTimeout);
         setLoading(false);
       }
     };
 
-    initializeAuth();
-  }, [fetchUserProfile, setError, setLoading]);
+    checkSession();
+    
+    return () => clearTimeout(initTimeout);
+  }, [fetchUserProfile, setLoading]);
 
   // Listen for auth changes
   useEffect(() => {
