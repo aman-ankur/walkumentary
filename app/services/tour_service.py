@@ -19,6 +19,7 @@ from app.models.user import User
 from app.schemas.tour import TourCreate, TourUpdate, TourResponse, TourGenerationRequest
 from .ai_service import ai_service
 from .cache_service import cache_service
+from .location_service import location_service
 from app.config import settings
 from app.utils.transcript_generator import TranscriptGenerator
 
@@ -786,7 +787,6 @@ class TourService:
 
     async def _geocode_stop(self, stop: dict, main_location: dict) -> Optional[dict]:
         """Geocode individual stop using location service"""
-        from .location_service import location_service
         
         # Build search query with stop name and approximate address
         search_parts = [stop.get('name', '')]

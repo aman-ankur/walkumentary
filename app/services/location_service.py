@@ -477,3 +477,6 @@ class LocationService:
             print(f"Traceback: {traceback.format_exc()}")
             print(f"Location data: {location_data}")
             raise Exception(f"Failed to store location: {str(e)}")
+
+# Global location service instance
+location_service = LocationService()
