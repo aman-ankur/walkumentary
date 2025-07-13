@@ -24,7 +24,12 @@ export function MapContainer({
 
   useEffect(() => {
     setMounted(true);
+    console.log('MapContainer mounted, center:', center, 'zoom:', zoom);
   }, []);
+  
+  useEffect(() => {
+    console.log('MapContainer center/zoom changed:', center, zoom);
+  }, [center, zoom]);
 
   if (!mounted) {
     return (

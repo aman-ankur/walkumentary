@@ -32,6 +32,10 @@ export function TourMap({ tour, className = '', showUserLocation = true, showNea
   const { location: userLocation, isLoading: isLoadingLocation } = useGeolocation();
   const { isPlaying, currentTime } = useAudioPlayer();
   
+  // Debug logging
+  console.log('TourMap rendered with tour:', tour);
+  console.log('Tour location coordinates:', tour.location.latitude, tour.location.longitude);
+  
   // Fetch nearby POIs around the tour location
   const { 
     locations: nearbyLocations, 

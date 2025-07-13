@@ -94,10 +94,21 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     if (currentTrack) {
       if (audio.src !== currentTrack.src) {
+        console.log('Setting audio src to:', currentTrack.src);
         audio.src = currentTrack.src;
+        console.log('Audio element src set, now loading...');
+        // Force load the audio
+        try {
+          audio.load();
+          console.log('Audio.load() called successfully');
+        } catch (error) {
+          console.error('Audio.load() failed:', error);
+        }
       }
       if (isPlaying) {
-        audio.play().catch(() => null);
+        audio.play().catch((error) => {
+          console.error('Audio play failed:', error);
+        });
       } else {
         audio.pause();
       }
@@ -112,17 +123,55 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (!audio) return;
 
     const onTime = () => setCurrentTime(audio.currentTime);
-    const onDur = () => setDuration(audio.duration);
+    const onDur = () => {
+      const dur = audio.duration;
+      console.log('Audio duration changed:', dur, 'isNaN:', isNaN(dur), 'isFinite:', isFinite(dur));
+      if (isFinite(dur) && !isNaN(dur)) {
+        setDuration(dur);
+      } else {
+        setDuration(0);
+      }
+    };
     const onEnded = () => setIsPlaying(false);
+    const onError = (e: Event) => {
+      console.error('Audio loading error:', e);
+      setDuration(0);
+      setIsPlaying(false);
+    };
+    const onLoadStart = () => {
+      console.log('Audio loading started');
+      setDuration(0);
+    };
+    const onCanPlay = () => {
+      console.log('Audio can play, duration:', audio.duration);
+      // Force duration update when audio is ready
+      if (isFinite(audio.duration) && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+    const onLoadedMetadata = () => {
+      console.log('Audio metadata loaded, duration:', audio.duration);
+      if (isFinite(audio.duration) && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
 
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("durationchange", onDur);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("error", onError);
+    audio.addEventListener("loadstart", onLoadStart);
+    audio.addEventListener("canplay", onCanPlay);
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
 
     return () => {
       audio.removeEventListener("timeupdate", onTime);
       audio.removeEventListener("durationchange", onDur);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("error", onError);
+      audio.removeEventListener("loadstart", onLoadStart);
+      audio.removeEventListener("canplay", onCanPlay);
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
     };
   }, []);
 
