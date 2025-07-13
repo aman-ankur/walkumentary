@@ -87,21 +87,21 @@ export function useAuth() {
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
-      console.log('Auth initialization starting...');
+      console.log('🚀 Auth initialization starting...');
+      
+      // Set a fallback timeout to ensure loading doesn't hang forever
+      const fallbackTimeout = setTimeout(() => {
+        console.log('⏰ Fallback timeout - ensuring loading is false');
+        setLoading(false);
+      }, 3000);
+      
       try {
-        // Add timeout to prevent infinite loading
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          console.log('❌ Auth initialization timeout, setting loading to false');
-          setLoading(false);
-          controller.abort();
-        }, 5000); // 5 second timeout to allow more time for auth processing
-
-        console.log('📡 Calling supabase.auth.getSession()...');
+        // Try to get session, but don't hang on it
+        console.log('📡 Attempting getSession()...');
         const { data: { session }, error } = await supabase.auth.getSession();
-        clearTimeout(timeoutId);
+        clearTimeout(fallbackTimeout);
         
-        console.log('✅ Got session response:', { 
+        console.log('✅ Got session:', { 
           hasSession: !!session, 
           hasUser: !!session?.user, 
           userEmail: session?.user?.email,
@@ -109,14 +109,14 @@ export function useAuth() {
         });
         
         if (error) {
-          console.error('Auth initialization error:', error);
+          console.error('❌ Auth initialization error:', error);
           setError(error.message);
           setLoading(false);
           return;
         }
 
         if (session?.user) {
-          console.log('Setting session user:', session.user.email);
+          console.log('🎉 Found existing session:', session.user.email);
           setState(prev => ({ 
             ...prev, 
             supabaseUser: session.user, 
@@ -126,11 +126,12 @@ export function useAuth() {
           // Fetch user profile from our API
           await fetchUserProfile(session.user);
         } else {
-          console.log('No session found, user not authenticated');
-          setLoading(false); // Important: Set loading to false even when no session
+          console.log('ℹ️ No existing session - waiting for auth state changes');
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        clearTimeout(fallbackTimeout);
+        console.error('❌ Auth initialization error:', error);
         setError('Failed to initialize authentication');
         setLoading(false);
       }
@@ -157,18 +158,28 @@ export function useAuth() {
         }));
 
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, fetching profile for:', session.user.email);
+          console.log('🎉 User signed in, fetching profile for:', session.user.email);
           await fetchUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
+          console.log('👋 User signed out');
           setState(prev => ({ 
             ...prev, 
             user: null,
             error: null 
           }));
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('🔄 Token refreshed for:', session.user.email);
+          // No need to refetch profile, just update session
+        } else if (session?.user && !event.includes('SIGNED_OUT')) {
+          console.log('📝 Session updated with user:', session.user.email);
+          // This handles cases where session becomes available without a specific event
+          if (!state.user) {
+            console.log('🔄 Fetching profile for newly available session');
+            await fetchUserProfile(session.user);
+          }
         }
         
-        console.log('Setting loading to false after auth state change');
+        console.log('✅ Setting loading to false after auth state change');
         setLoading(false);
       }
     );
