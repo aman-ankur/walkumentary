@@ -173,7 +173,7 @@ export function SimpleTourMap({ tour, className = '', activeStopIndex }: SimpleT
           map.fitBounds(group.getBounds().pad(0.1));
         }
 
-        // Add tour info panel
+        // Add tour info panel (mobile-optimized)
         const tourInfoControl = new (L as any).Control({ position: 'bottomleft' });
         tourInfoControl.onAdd = function() {
           const div = L.DomUtil.create('div', 'tour-info-panel');
@@ -181,11 +181,12 @@ export function SimpleTourMap({ tour, className = '', activeStopIndex }: SimpleT
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(4px);
             border-radius: 8px;
-            padding: 8px 10px;
+            padding: 6px 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             border: 1px solid rgba(255, 107, 53, 0.3);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 200px;
+            max-width: 160px;
+            margin: 0 0 10px 10px;
           `;
           div.innerHTML = `
             <div style="font-size: 12px;">
