@@ -52,13 +52,18 @@ elif is_postgresql:
     
     extra_kwargs = {
         "connect_args": connect_args,
-        "pool_pre_ping": True,
-        "pool_recycle": 300,
-        "pool_timeout": 30,
         "execution_options": {
             "compiled_cache": {},  # Disable compiled cache
         }
     }
+    
+    # Only add pool-related settings if NOT using NullPool
+    if not is_supabase:  # Regular PostgreSQL gets pool settings
+        extra_kwargs.update({
+            "pool_pre_ping": True,
+            "pool_recycle": 300,
+            "pool_timeout": 30,
+        })
     
     config_type = "Supabase pgbouncer" if is_supabase else "PostgreSQL"
     logging.info(f"🚀 {config_type} configuration with UUID statement naming applied")
@@ -71,13 +76,22 @@ else:
     logging.info("⚠️ Fallback configuration applied")
 
 # Create the async engine with all configurations applied
+engine_kwargs = {
+    "echo": False,
+    "poolclass": poolclass,
+    **extra_kwargs,
+}
+
+# Only add pool size parameters if NOT using NullPool (Supabase uses external pooling)
+if not is_supabase:
+    engine_kwargs.update({
+        "pool_size": settings.DATABASE_POOL_SIZE,
+        "max_overflow": settings.DATABASE_MAX_OVERFLOW,
+    })
+
 engine = create_async_engine(
     settings.database_url_async,
-    pool_size=5 if is_supabase else settings.DATABASE_POOL_SIZE,
-    max_overflow=0 if is_supabase else settings.DATABASE_MAX_OVERFLOW,
-    echo=False,
-    poolclass=poolclass,
-    **extra_kwargs,
+    **engine_kwargs,
 )
 
 logging.info("🎯 Database engine created successfully with pgbouncer-compatible configuration")
