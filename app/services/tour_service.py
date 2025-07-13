@@ -174,6 +174,7 @@ class TourService:
             try:
                 import asyncio, time
                 audio_text = self._truncate_for_tts(content_data["content"])
+                logger.info(f"TTS content length: {len(content_data['content'])} chars, truncated to: {len(audio_text)} chars")
                 t0 = time.perf_counter()
                 audio_data = await asyncio.wait_for(
                     self.ai_service.generate_audio(
@@ -832,7 +833,7 @@ class TourService:
                     logger.error(f"Error geocoding stop {i+1} ({stop.get('name', 'unknown')}): {e}")
                     continue
             
-            # Validate walking feasibility - temporarily disabled to debug
+            # Validate walking feasibility
             if geocoded_stops:
                 try:
                     feasibility = self._validate_walking_feasibility([location] + geocoded_stops)
@@ -842,7 +843,9 @@ class TourService:
                         logger.warning(f"Route not feasible: {feasibility.get('total_distance', 'unknown')}m total distance")
                         # Still return the stops but log the warning
                 except Exception as feasibility_error:
-                    logger.warning(f"Route feasibility check failed: {feasibility_error}")
+                    logger.error(f"Route feasibility check failed: {feasibility_error}")
+                    import traceback
+                    logger.error(f"Feasibility check traceback: {traceback.format_exc()}")
                     # Continue anyway - feasibility check is not critical
             
             logger.info(f"Successfully processed {len(geocoded_stops)}/{len(walkable_stops)} walkable stops")
@@ -965,12 +968,15 @@ class TourService:
             leg_distances.append(leg_distance)
             total_distance += leg_distance
         
+        max_leg_distance = max(leg_distances) if leg_distances else 0
+        avg_leg_distance = sum(leg_distances) / len(leg_distances) if leg_distances else 0
+        
         return {
-            "is_feasible": total_distance <= max_total_distance and max(leg_distances) <= 500,  # Max 500m between stops
+            "is_feasible": total_distance <= max_total_distance and max_leg_distance <= 500,  # Max 500m between stops
             "total_distance": total_distance,
-            "max_leg_distance": max(leg_distances) if leg_distances else 0,
-            "average_leg_distance": sum(leg_distances) / len(leg_distances) if leg_distances else 0,
-            "estimated_walking_time_minutes": total_distance / 80  # Assume 80m/min walking speed
+            "max_leg_distance": max_leg_distance,
+            "average_leg_distance": avg_leg_distance,
+            "estimated_walking_time_minutes": total_distance / 80 if total_distance > 0 else 0  # Assume 80m/min walking speed
         }
 
 # Global tour service instance
