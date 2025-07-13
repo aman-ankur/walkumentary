@@ -35,11 +35,16 @@ export async function request<T>(
     headers["Authorization"] = `Bearer ${session.access_token}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const fullUrl = `${BASE_URL}${path}`;
+  console.log('🌐 FETCH REQUEST:', { fullUrl, BASE_URL, path, headers, options });
+  
+  const res = await fetch(fullUrl, {
     credentials: "include",
     ...options,
     headers,
   });
+  
+  console.log('📡 FETCH RESPONSE:', { url: fullUrl, status: res.status, statusText: res.statusText, ok: res.ok });
 
   if (!res.ok) {
     const text = await res.text();
