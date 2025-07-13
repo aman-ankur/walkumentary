@@ -625,6 +625,7 @@ class TourService:
         """Calculate progress percentage based on status"""
         progress_map = {
             "generating": 50,
+            "content_ready": 80,
             "ready": 100,
             "error": 0
         }
@@ -839,11 +840,21 @@ class TourService:
         city = main_location.get('city', '')
         country = main_location.get('country', '')
         
+        # Clean up descriptive stop names like "Back to the Eiffel Tower"
+        cleaned_name = stop_name
+        if "back to the" in stop_name.lower():
+            # Extract the actual location name
+            cleaned_name = stop_name.lower().replace("back to the ", "").replace("back to ", "")
+            cleaned_name = cleaned_name.title()
+        elif "return to" in stop_name.lower():
+            cleaned_name = stop_name.lower().replace("return to the ", "").replace("return to ", "")
+            cleaned_name = cleaned_name.title()
+        
         # Try different query variations, starting with simplest
         search_queries = [
-            f"{stop_name}, {city}",  # Simple: "Eiffel Tower, Paris"
-            f"{stop_name}, {city}, {country}",  # Medium: "Eiffel Tower, Paris, France"
-            stop_name  # Fallback: just the name
+            f"{cleaned_name}, {city}",  # Simple: "Eiffel Tower, Paris"
+            f"{cleaned_name}, {city}, {country}",  # Medium: "Eiffel Tower, Paris, France"
+            cleaned_name  # Fallback: just the name
         ]
         
         search_query = search_queries[0]  # Start with the simplest
