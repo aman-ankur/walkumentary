@@ -10,7 +10,12 @@
 import { supabase } from './supabase';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ""; // same-origin by default
-console.log('API BASE_URL:', BASE_URL, 'ENV:', process.env.NEXT_PUBLIC_API_BASE_URL);
+console.log('🔍 API Configuration:', {
+  BASE_URL,
+  NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  NODE_ENV: process.env.NODE_ENV,
+  currentOrigin: typeof window !== 'undefined' ? window.location.origin : 'SSR'
+});
 
 export async function request<T>(
   path: string,
