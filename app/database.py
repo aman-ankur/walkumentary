@@ -50,23 +50,20 @@ elif is_postgresql:
         }
     }
     
-    # Use StaticPool for Supabase to avoid connection timeout issues
-    # NullPool causes TimeoutError on connection close with pgbouncer
-    poolclass = StaticPool if is_supabase else None
+    # Use regular pooling for Supabase with UUID statement naming
+    # The UUID naming solves the pgbouncer issue, no special pool needed
+    poolclass = None
     
     extra_kwargs = {
         "connect_args": connect_args,
         "execution_options": {
             "compiled_cache": {},  # Disable compiled cache
-        }
-    }
-    
-    # Add pool-related settings (StaticPool can handle these)
-    extra_kwargs.update({
+        },
+        # Pool settings that work with default QueuePool
         "pool_pre_ping": True,
-        "pool_recycle": 300,  # Recycle connections every 5 minutes for Supabase
+        "pool_recycle": 300,  # Recycle connections every 5 minutes
         "pool_timeout": 30,
-    })
+    }
     
     config_type = "Supabase pgbouncer" if is_supabase else "PostgreSQL"
     logging.info(f"🚀 {config_type} configuration with UUID statement naming applied")
@@ -85,11 +82,11 @@ engine_kwargs = {
     **extra_kwargs,
 }
 
-# Add pool size parameters (StaticPool and regular pools can handle these)
+# Add pool size parameters for all PostgreSQL connections
 if is_supabase:
-    # Smaller pool for Supabase with StaticPool
+    # Smaller pool for Supabase to work well with pgbouncer
     engine_kwargs.update({
-        "pool_size": 1,  # StaticPool uses single connection
+        "pool_size": 5,
         "max_overflow": 0,
     })
 else:
