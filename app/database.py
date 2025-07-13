@@ -14,13 +14,25 @@ if "sqlite" in settings.DATABASE_URL:
     connect_args = {"check_same_thread": False}
     poolclass = StaticPool
 elif "supabase.co" in settings.DATABASE_URL or "pooler" in settings.DATABASE_URL:
-    # Supabase with pgbouncer - disable prepared statements to avoid conflicts
-    connect_args = {"statement_cache_size": 0}
+    # Supabase with pgbouncer - disable all prepared statements
+    from uuid import uuid4
+    connect_args = {
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+    }
     poolclass = None
+    # Additional SQLAlchemy-level configuration for pgbouncer compatibility
+    extra_kwargs = {
+        "connect_args": connect_args,
+        "execution_options": {
+            "isolation_level": "AUTOCOMMIT"
+        }
+    }
 else:
     # Regular PostgreSQL
     connect_args = {}
     poolclass = None
+    extra_kwargs = {"connect_args": connect_args}
 
 engine = create_async_engine(
     settings.database_url_async,
@@ -30,7 +42,7 @@ engine = create_async_engine(
     # Disable SQL statement echo; detailed logs can be enabled by LOG_LEVEL or setting SQL_DEBUG env
     echo=False,
     poolclass=poolclass,
-    connect_args=connect_args,
+    **extra_kwargs,
 )
 
 # Create sessionmaker

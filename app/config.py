@@ -55,9 +55,9 @@ class Settings(BaseSettings):
     DATABASE_MAX_OVERFLOW: int = Field(default=20)
     
     # Supabase
-    SUPABASE_URL: str = Field(..., description="Supabase project URL")
-    SUPABASE_SERVICE_KEY: str = Field(..., description="Supabase service role key")
-    SUPABASE_ANON_KEY: str = Field(..., description="Supabase anonymous key")
+    SUPABASE_URL: Optional[str] = Field(default=None, description="Supabase project URL")
+    SUPABASE_SERVICE_KEY: Optional[str] = Field(default=None, description="Supabase service role key")
+    SUPABASE_ANON_KEY: Optional[str] = Field(default=None, description="Supabase anonymous key")
     
     # Redis
     REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis connection URL (defaults to local Redis)")
@@ -67,13 +67,13 @@ class Settings(BaseSettings):
     DEFAULT_LLM_PROVIDER: LLMProvider = Field(default=LLMProvider.OPENAI)
     
     # OpenAI
-    OPENAI_API_KEY: str = Field(..., description="OpenAI API key")
+    OPENAI_API_KEY: Optional[str] = Field(default=None, description="OpenAI API key")
     OPENAI_MODEL: str = Field(default="gpt-4o-mini")
     OPENAI_TTS_MODEL: str = Field(default="tts-1")
     OPENAI_TTS_VOICE: str = Field(default="alloy")
     
     # Anthropic
-    ANTHROPIC_API_KEY: str = Field(..., description="Anthropic API key")
+    ANTHROPIC_API_KEY: Optional[str] = Field(default=None, description="Anthropic API key")
     ANTHROPIC_MODEL: str = Field(default="claude-3-haiku-20240307")
     
     # Google Cloud (for Vision API)
