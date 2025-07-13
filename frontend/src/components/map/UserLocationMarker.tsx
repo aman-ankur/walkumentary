@@ -1,19 +1,8 @@
 "use client";
 
+import { Marker, Circle } from 'react-leaflet';
 import { Icon, LatLngExpression } from 'leaflet';
 import { UserLocationMarkerProps } from './types';
-import dynamic from 'next/dynamic';
-
-// Dynamically import react-leaflet components
-const DynamicMarker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-);
-
-const DynamicCircle = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Circle),
-  { ssr: false }
-);
 
 // Create custom icon for user location
 const createUserIcon = (isTracking: boolean = false) => new Icon({
@@ -45,7 +34,7 @@ export function UserLocationMarker({
   return (
     <>
       {/* Accuracy circle */}
-      <DynamicCircle
+      <Circle
         center={position}
         radius={accuracy}
         pathOptions={{
@@ -57,7 +46,7 @@ export function UserLocationMarker({
       />
       
       {/* User position marker */}
-      <DynamicMarker 
+      <Marker 
         position={position} 
         icon={createUserIcon(isTracking)}
         zIndexOffset={1000} // Ensure user marker appears on top

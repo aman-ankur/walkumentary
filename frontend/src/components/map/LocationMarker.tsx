@@ -1,19 +1,8 @@
 "use client";
 
+import { Marker, Popup } from 'react-leaflet';
 import { Icon, LatLngExpression } from 'leaflet';
 import { LocationMarkerProps } from './types';
-import dynamic from 'next/dynamic';
-
-// Dynamically import react-leaflet components
-const DynamicMarker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-);
-
-const DynamicPopup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-);
 
 // Create custom icon for tour locations
 const createTourIcon = (isActive: boolean = false) => new Icon({
@@ -39,14 +28,14 @@ export function LocationMarker({ location, isActive = false, onClick }: Location
   };
 
   return (
-    <DynamicMarker 
+    <Marker 
       position={position} 
       icon={createTourIcon(isActive)}
       eventHandlers={{
         click: handleClick,
       }}
     >
-      <DynamicPopup>
+      <Popup>
         <div className="min-w-[200px] p-2">
           <h3 className="font-semibold text-gray-900 mb-2">{location.name}</h3>
           {location.description && (
@@ -58,7 +47,7 @@ export function LocationMarker({ location, isActive = false, onClick }: Location
             </span>
           )}
         </div>
-      </DynamicPopup>
-    </DynamicMarker>
+      </Popup>
+    </Marker>
   );
 }
