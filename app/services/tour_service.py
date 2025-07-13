@@ -239,6 +239,10 @@ class TourService:
                     
                     await db.commit()
                     logger.info(f"Tour {tour_id} generation completed successfully with {len(transcript_segments) if transcript_segments else 0} transcript segments")
+                    
+                    # Verify the update was committed by re-reading
+                    await db.refresh(tour)
+                    logger.info(f"Tour {tour_id} status after commit: {tour.status}, title: {tour.title}")
                 else:
                     logger.error(f"Tour {tour_id} not found during content update")
                     
@@ -583,6 +587,9 @@ class TourService:
         """
         try:
             tour = await self.get_tour(db, tour_id, user)
+            
+            # Force refresh from database to ensure we have latest status
+            await db.refresh(tour)
             
             return {
                 "tour_id": tour.id,
