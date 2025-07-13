@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+import { Tour } from '@/lib/types';
 
 // Create a wrapper that handles the dynamic import properly
 const TourMapComponent = dynamic(
@@ -16,20 +17,13 @@ const TourMapComponent = dynamic(
 );
 
 interface DynamicTourMapProps {
-  tour: {
-    location: {
-      name: string;
-      latitude: number;
-      longitude: number;
-      description?: string;
-      location_type?: string;
-    };
-    title: string;
-    description?: string;
-  };
+  tour: Tour;
   className?: string;
   showUserLocation?: boolean;
   showNearbyPOIs?: boolean;
+  showWalkableStops?: boolean;
+  showWalkingRoute?: boolean;
+  activeStopIndex?: number;
 }
 
 export function DynamicTourMap(props: DynamicTourMapProps) {

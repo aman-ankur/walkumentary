@@ -57,14 +57,14 @@ class AIService:
         self.provider_configs = {
             LLMProvider.OPENAI: {
                 "model": settings.OPENAI_MODEL,
-                "max_tokens": 2000,
+                "max_tokens": 4000,
                 "temperature": 0.7,
                 "top_p": 0.9,
                 "cost_per_1k_tokens": 0.000765,  # GPT-4o-mini average
             },
             LLMProvider.ANTHROPIC: {
                 "model": settings.ANTHROPIC_MODEL,
-                "max_tokens": 2000,
+                "max_tokens": 4000,
                 "temperature": 0.7,
                 "cost_per_1k_tokens": 0.001375,  # Claude Haiku average
             }
@@ -242,26 +242,49 @@ class AIService:
         language: str,
         narration_style: str
     ) -> str:
-        """Create token-optimized prompt for content generation"""
+        """Create token-optimized prompt for walkable tour content generation"""
         
         # Limit interests to save tokens
         interests_text = ",".join(interests[:3]) if interests else "history,culture"
         
-        # Ultra-concise prompt to minimize input tokens
-        prompt = f"""Create {duration_minutes}min audio tour for {location['name']}, {location.get('city', '')}.
-Focus: {interests_text}
-Language: {language}
-Style: {narration_style}
+        # Enhanced prompt for walkable tours with structured stops
+        prompt = f"""Create a {duration_minutes}-minute WALKING TOUR for {location['name']}, {location.get('city', '')}.
 
-Return JSON:
-{{"title": "engaging title", "content": "conversational {duration_minutes}-minute narration script with clear sections"}}
+WALKING TOUR REQUIREMENTS:
+- Generate 3-7 distinct stops within 1.5km radius that can be covered on foot
+- Each stop should be 50-300 meters apart (comfortable walking distance)
+- Include specific landmark names, street addresses, or clear location descriptions
+- Create logical walking route with smooth transitions between stops
+- Focus on: {interests_text}
+- Language: {language}
+- Style: {narration_style}
 
-Requirements:
-- Conversational audio style
-- {duration_minutes} minutes of content
-- Include fascinating facts and stories
-- Clear section transitions
-- Engaging for all ages"""
+RESPONSE FORMAT - Return structured JSON:
+{{
+  "title": "Walking Tour Title",
+  "content": "Complete {duration_minutes}-minute narration script with clear walking directions and stop transitions",
+  "walkable_stops": [
+    {{
+      "name": "Stop Name",
+      "description": "Brief description of what visitors will see",
+      "approximate_address": "Street address, intersection, or landmark description",
+      "walking_time_from_previous": "2 minutes",
+      "content_duration": "3 minutes",
+      "highlights": ["key feature 1", "architectural detail", "historical fact"]
+    }}
+  ],
+  "total_walking_distance": "1.2 km",
+  "estimated_walking_time": "15 minutes",
+  "difficulty_level": "easy"
+}}
+
+CONTENT GUIDELINES:
+- Include walking directions between stops ("Walk 2 minutes north along...")
+- Mention specific architectural details, historical facts, cultural significance
+- Use present tense as if user is standing at each location
+- Clear audio cues for when to move to next stop ("Now let's walk to our next stop...")
+- Ensure stops are genuinely walkable and form a logical route
+- Each stop should have 2-4 minutes of interesting content"""
         
         return prompt
     

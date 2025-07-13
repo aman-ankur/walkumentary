@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
 import { AuthButton } from "@/components/auth/AuthButton";
+import Image from "next/image";
 
 export const Header = () => {
   return (
@@ -8,8 +8,14 @@ export const Header = () => {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-            <MapPin className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image 
+              src="/walkumentary-icon.jpeg" 
+              alt="Walkumentary Logo" 
+              width={32} 
+              height={32}
+              className="object-cover"
+            />
           </div>
           <span className="text-xl font-semibold text-gray-900">Walkumentary</span>
         </Link>

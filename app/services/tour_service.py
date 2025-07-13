@@ -19,6 +19,7 @@ from app.models.user import User
 from app.schemas.tour import TourCreate, TourUpdate, TourResponse, TourGenerationRequest
 from .ai_service import ai_service
 from .cache_service import cache_service
+from .location_service import location_service
 from app.config import settings
 from app.utils.transcript_generator import TranscriptGenerator
 
@@ -142,11 +143,38 @@ class TourService:
                 },
             )
 
+            # ----------------- 1.5. Process walkable stops (if present) -----------------
+            geocoded_stops = []
+            try:
+                logger.info("Starting walkable stops processing...")
+                geocoded_stops = await self._process_walkable_tour_content(content_data, location)
+                if geocoded_stops:
+                    logger.info(f"Successfully processed {len(geocoded_stops)} walkable stops")
+                    
+                    # Update tour with walkable stops data
+                    logger.info("Saving walkable stops data...")
+                    try:
+                        await self._save_walkable_stops(tour_id, content_data, geocoded_stops)
+                        logger.info("Walkable stops data saved successfully")
+                    except Exception as save_error:
+                        logger.error(f"Failed to save walkable stops: {save_error}")
+                        # Continue with tour generation even if saving walkable stops fails
+                else:
+                    logger.info("No walkable stops to process or geocoding failed")
+            except Exception as e:
+                logger.error(f"Failed to process walkable stops: {e}")
+                import traceback
+                logger.error(f"Walkable stops processing traceback: {traceback.format_exc()}")
+                # Continue with tour generation even if walkable stops fail
+            
+            logger.info("Proceeding to audio generation...")
+
             # ----------------- 2. Generate audio (TTS) ---------------------
             audio_data: Optional[bytes] = None
             try:
                 import asyncio, time
                 audio_text = self._truncate_for_tts(content_data["content"])
+                logger.info(f"TTS content length: {len(content_data['content'])} chars, truncated to: {len(audio_text)} chars")
                 t0 = time.perf_counter()
                 audio_data = await asyncio.wait_for(
                     self.ai_service.generate_audio(
@@ -223,6 +251,10 @@ class TourService:
                     
                     await db.commit()
                     logger.info(f"Tour {tour_id} generation completed successfully with {len(transcript_segments) if transcript_segments else 0} transcript segments")
+                    
+                    # Verify the update was committed by re-reading
+                    await db.refresh(tour)
+                    logger.info(f"Tour {tour_id} status after commit: {tour.status}, title: {tour.title}")
                 else:
                     logger.error(f"Tour {tour_id} not found during content update")
                     
@@ -330,6 +362,12 @@ class TourService:
                     "user_id": str(tour.user_id),
                     "created_at": tour.created_at.isoformat() if tour.created_at else None,
                     "updated_at": tour.updated_at.isoformat() if tour.updated_at else None,
+                    # Walkable tour fields (safely handle missing attributes)
+                    "walkable_stops": getattr(tour, 'walkable_stops', None) or [],
+                    "total_walking_distance": getattr(tour, 'total_walking_distance', None),
+                    "estimated_walking_time": getattr(tour, 'estimated_walking_time', None),
+                    "difficulty_level": getattr(tour, 'difficulty_level', None) or "easy",
+                    "route_type": getattr(tour, 'route_type', None) or "walkable",
                     "location": {
                         "id": str(tour.location.id),
                         "name": tour.location.name,
@@ -562,7 +600,10 @@ class TourService:
         try:
             tour = await self.get_tour(db, tour_id, user)
             
-            return {
+            # Force refresh from database to ensure we have latest status
+            await db.refresh(tour)
+            
+            status_response = {
                 "tour_id": tour.id,
                 "status": tour.status,
                 "title": tour.title,
@@ -572,6 +613,10 @@ class TourService:
                 "updated_at": tour.updated_at
             }
             
+# Removed debug logging - issues identified and fixed
+            
+            return status_response
+            
         except Exception as e:
             logger.error(f"Failed to get tour status {tour_id}: {str(e)}")
             raise TourServiceError(f"Failed to get tour status: {str(e)}")
@@ -580,6 +625,7 @@ class TourService:
         """Calculate progress percentage based on status"""
         progress_map = {
             "generating": 50,
+            "content_ready": 80,
             "ready": 100,
             "error": 0
         }
@@ -672,11 +718,11 @@ class TourService:
                 await db.commit()
 
     def _truncate_for_tts(self, text: str) -> str:
-        """Trim text to ~2500 chars so TTS returns faster and end cleanly on a sentence."""
-        max_len = 2500
+        """Trim text to OpenAI TTS character limit and end cleanly on a sentence."""
+        max_len = 4096  # OpenAI TTS actual limit
         t = text[:max_len]
         if len(text) > max_len:
-            # Try to avoid cutting words; backtrack to last period in the last 20 % of slice
+            # Try to avoid cutting words; backtrack to last period in the last 20% of slice
             last_period = t.rfind('.')
             if last_period > int(max_len * 0.8):
                 t = t[: last_period + 1]
@@ -697,6 +743,241 @@ class TourService:
                 tour.llm_model = content_data["metadata"]["model"]
                 tour.generation_params = content_data["metadata"]
                 await db.commit()
+
+    async def _save_walkable_stops(self, tour_id: uuid.UUID, content_data: dict, geocoded_stops: list):
+        """Save walkable stops data to the tour"""
+        try:
+            from app.database import AsyncSessionLocal
+            async with AsyncSessionLocal() as db:
+                result = await db.execute(select(Tour).where(Tour.id == tour_id))
+                tour = result.scalar_one_or_none()
+                if tour:
+                    # Save walkable stops data - check if fields exist
+                    try:
+                        # Check if walkable fields exist before setting them
+                        if hasattr(tour, 'walkable_stops'):
+                            tour.walkable_stops = geocoded_stops
+                        if hasattr(tour, 'total_walking_distance'):
+                            tour.total_walking_distance = content_data.get("total_walking_distance")
+                        if hasattr(tour, 'estimated_walking_time'):
+                            tour.estimated_walking_time = content_data.get("estimated_walking_time")
+                        if hasattr(tour, 'difficulty_level'):
+                            tour.difficulty_level = content_data.get("difficulty_level", "easy")
+                        if hasattr(tour, 'route_type'):
+                            tour.route_type = "walkable"
+                        await db.commit()
+                        logger.info(f"Saved walkable stops data for tour {tour_id}")
+                    except Exception as field_error:
+                        logger.error(f"Error saving walkable fields for tour {tour_id}: {field_error}")
+                        # If database schema issues, continue without saving walkable data
+                        await db.rollback()
+                        logger.warning("Continuing without saving walkable data - database schema might be missing fields")
+                else:
+                    logger.error(f"Tour {tour_id} not found when saving walkable stops")
+        except Exception as e:
+            logger.error(f"Critical error in _save_walkable_stops for tour {tour_id}: {e}")
+            import traceback
+            logger.error(f"_save_walkable_stops traceback: {traceback.format_exc()}")
+            raise e
+
+    async def _process_walkable_tour_content(self, content_data: dict, location: dict) -> list:
+        """Process AI-generated content to extract and geocode walkable stops"""
+        try:
+            # Extract structured stops from AI response
+            walkable_stops = content_data.get("walkable_stops", [])
+            
+            # Validate walkable stops format
+            if not walkable_stops or not isinstance(walkable_stops, list):
+                logger.info("No walkable stops found in AI response or invalid format")
+                return []
+            
+            # Filter out invalid stop entries
+            valid_stops = []
+            for stop in walkable_stops:
+                if isinstance(stop, dict) and stop.get('name'):
+                    valid_stops.append(stop)
+                else:
+                    logger.warning(f"Skipping invalid stop entry: {stop}")
+            
+            if not valid_stops:
+                logger.info("No valid walkable stops found after validation")
+                return []
+            
+            walkable_stops = valid_stops
+            
+            # Geocode each stop using existing location service
+            geocoded_stops = []
+            for i, stop in enumerate(walkable_stops):
+                try:
+                    # Add delay between requests to avoid rate limiting
+                    if i > 0:
+                        import asyncio
+                        await asyncio.sleep(1)  # 1 second delay between geocoding requests
+                    
+                    coordinates = await self._geocode_stop(stop, location)
+                    if coordinates:
+                        geocoded_stop = {
+                            **stop,
+                            "latitude": coordinates["lat"],
+                            "longitude": coordinates["lng"],
+                            "geocoding_accuracy": coordinates.get("accuracy", "unknown"),
+                            "distance_from_main": self._calculate_walking_distance(
+                                location, coordinates
+                            )
+                        }
+                        geocoded_stops.append(geocoded_stop)
+                        logger.info(f"Successfully geocoded stop {i+1}: {stop['name']}")
+                    else:
+                        logger.warning(f"Failed to geocode stop {i+1}: {stop['name']}")
+                except Exception as e:
+                    logger.error(f"Error geocoding stop {i+1} ({stop.get('name', 'unknown')}): {e}")
+                    continue
+            
+            # Validate walking feasibility
+            if geocoded_stops:
+                try:
+                    feasibility = self._validate_walking_feasibility([location] + geocoded_stops)
+                    logger.info(f"Route feasibility: {feasibility}")
+                    
+                    if not feasibility["is_feasible"]:
+                        logger.warning(f"Route not feasible: {feasibility.get('total_distance', 'unknown')}m total distance")
+                        # Still return the stops but log the warning
+                except Exception as feasibility_error:
+                    logger.error(f"Route feasibility check failed: {feasibility_error}")
+                    import traceback
+                    logger.error(f"Feasibility check traceback: {traceback.format_exc()}")
+                    # Continue anyway - feasibility check is not critical
+            
+            logger.info(f"Successfully processed {len(geocoded_stops)}/{len(walkable_stops)} walkable stops")
+            return geocoded_stops
+            
+        except Exception as e:
+            logger.error(f"Error processing walkable tour content: {e}")
+            return []
+
+    async def _geocode_stop(self, stop: dict, main_location: dict) -> Optional[dict]:
+        """Geocode individual stop using location service"""
+        
+        # Build simplified search query - complex queries are failing
+        stop_name = stop.get('name', '')
+        city = main_location.get('city', '')
+        country = main_location.get('country', '')
+        
+        # Clean up descriptive stop names like "Back to the Eiffel Tower"
+        cleaned_name = stop_name
+        if "back to the" in stop_name.lower():
+            # Extract the actual location name
+            cleaned_name = stop_name.lower().replace("back to the ", "").replace("back to ", "")
+            cleaned_name = cleaned_name.title()
+        elif "return to" in stop_name.lower():
+            cleaned_name = stop_name.lower().replace("return to the ", "").replace("return to ", "")
+            cleaned_name = cleaned_name.title()
+        
+        # Try different query variations, starting with simplest
+        search_queries = [
+            f"{cleaned_name}, {city}",  # Simple: "Eiffel Tower, Paris"
+            f"{cleaned_name}, {city}, {country}",  # Medium: "Eiffel Tower, Paris, France"
+            cleaned_name  # Fallback: just the name
+        ]
+        
+        search_query = search_queries[0]  # Start with the simplest
+        
+        try:
+            # Use existing location service search with proximity to main location
+            main_coords = None
+            if main_location.get('coordinates'):
+                main_coords = main_location['coordinates']
+            elif 'latitude' in main_location and 'longitude' in main_location:
+                main_coords = [main_location['latitude'], main_location['longitude']]
+            
+            # Try different query formats until one succeeds
+            for query in search_queries:
+                if not query.strip():
+                    continue
+                    
+                logger.info(f"Geocoding stop '{stop.get('name', 'unknown')}' with query: '{query}' near {main_coords}")
+                
+                search_result = await location_service.search_locations(
+                    query=query,
+                    coordinates=main_coords,
+                    radius=2000,  # 2km radius for walkable tours
+                    limit=1
+                )
+                
+                logger.info(f"Search result for '{stop.get('name', 'unknown')}': {search_result}")
+                
+                if search_result and search_result.get("locations") and len(search_result["locations"]) > 0:
+                    result = search_result["locations"][0]
+                    logger.info(f"Successfully geocoded '{stop.get('name', 'unknown')}' to lat={result['latitude']}, lng={result['longitude']}")
+                    return {
+                        "lat": result["latitude"],
+                        "lng": result["longitude"],
+                        "accuracy": "geocoded"
+                    }
+                else:
+                    logger.warning(f"No results found for stop '{stop.get('name', 'unknown')}' with query '{query}'")
+                
+        except Exception as e:
+            logger.error(f"Exception while geocoding stop {stop.get('name', 'unknown')}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        return None
+
+    def _calculate_walking_distance(self, loc1: dict, loc2: dict) -> float:
+        """Calculate walking distance between two locations using Haversine formula"""
+        from math import radians, cos, sin, asin, sqrt
+        
+        # Extract coordinates
+        if 'coordinates' in loc1:
+            lat1, lon1 = loc1['coordinates']
+        else:
+            lat1, lon1 = loc1.get('latitude', 0), loc1.get('longitude', 0)
+            
+        lat2, lon2 = loc2.get('lat', 0), loc2.get('lng', 0)
+        
+        # Check for invalid coordinates (0,0 means geocoding failed)
+        if (lat1 == 0 and lon1 == 0) or (lat2 == 0 and lon2 == 0):
+            return float('inf')  # Return infinite distance for invalid coordinates
+        
+        # Convert to radians
+        lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+        
+        # Haversine formula
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        r = 6371  # Radius of earth in kilometers
+        
+        return c * r * 1000  # Return distance in meters
+
+    def _validate_walking_feasibility(self, route_locations: list, max_total_distance: float = 2000) -> dict:
+        """Validate that route is feasible for walking"""
+        if len(route_locations) < 2:
+            return {"is_feasible": True, "total_distance": 0, "max_leg_distance": 0}
+        
+        total_distance = 0
+        leg_distances = []
+        
+        for i in range(len(route_locations) - 1):
+            leg_distance = self._calculate_walking_distance(route_locations[i], route_locations[i+1])
+            # Skip infinite distances (failed geocoding)
+            if leg_distance == float('inf'):
+                continue
+            leg_distances.append(leg_distance)
+            total_distance += leg_distance
+        
+        max_leg_distance = max(leg_distances) if leg_distances else 0
+        avg_leg_distance = sum(leg_distances) / len(leg_distances) if leg_distances else 0
+        
+        return {
+            "is_feasible": total_distance <= max_total_distance and max_leg_distance <= 500,  # Max 500m between stops
+            "total_distance": total_distance,
+            "max_leg_distance": max_leg_distance,
+            "average_leg_distance": avg_leg_distance,
+            "estimated_walking_time_minutes": total_distance / 80 if total_distance > 0 else 0  # Assume 80m/min walking speed
+        }
 
 # Global tour service instance
 tour_service = TourService()
