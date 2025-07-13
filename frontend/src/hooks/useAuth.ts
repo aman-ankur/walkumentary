@@ -92,15 +92,21 @@ export function useAuth() {
         // Add timeout to prevent infinite loading
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-          console.log('Auth initialization timeout, setting loading to false');
+          console.log('❌ Auth initialization timeout, setting loading to false');
           setLoading(false);
           controller.abort();
-        }, 3000); // 3 second timeout
+        }, 5000); // 5 second timeout to allow more time for auth processing
 
+        console.log('📡 Calling supabase.auth.getSession()...');
         const { data: { session }, error } = await supabase.auth.getSession();
         clearTimeout(timeoutId);
         
-        console.log('Got session:', { session: !!session, user: !!session?.user, error });
+        console.log('✅ Got session response:', { 
+          hasSession: !!session, 
+          hasUser: !!session?.user, 
+          userEmail: session?.user?.email,
+          error: error?.message 
+        });
         
         if (error) {
           console.error('Auth initialization error:', error);
@@ -135,9 +141,14 @@ export function useAuth() {
 
   // Listen for auth changes
   useEffect(() => {
+    console.log('🔗 Setting up auth state change listener...');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, { session: !!session, user: !!session?.user });
+        console.log('🔄 Auth state change:', event, { 
+          hasSession: !!session, 
+          hasUser: !!session?.user,
+          userEmail: session?.user?.email 
+        });
         
         setState(prev => ({ 
           ...prev, 
