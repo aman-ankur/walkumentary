@@ -61,10 +61,14 @@ export function TourMap({ tour, className = '', showUserLocation = true, showNea
   // Fetch nearby POIs when tour location is available
   useEffect(() => {
     if (showNearbyPOIs && tourLocation.coordinates) {
-      fetchNearbyLocations([
-        tourLocation.coordinates.latitude,
-        tourLocation.coordinates.longitude
-      ]);
+      try {
+        fetchNearbyLocations([
+          tourLocation.coordinates.latitude,
+          tourLocation.coordinates.longitude
+        ]);
+      } catch (error) {
+        console.warn('Failed to fetch nearby POIs:', error);
+      }
     }
   }, [showNearbyPOIs, tourLocation.coordinates, fetchNearbyLocations]);
 

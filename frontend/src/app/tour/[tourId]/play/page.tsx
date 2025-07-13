@@ -51,7 +51,7 @@ export default function TourPlayerPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Interactive Map */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[400px] sm:h-[500px] lg:col-span-2">
-            <DynamicTourMap tour={tour} className="h-full" showNearbyPOIs={true} />
+            <DynamicTourMap tour={tour} className="h-full" showNearbyPOIs={false} />
           </div>
 
           {/* Audio player */}
