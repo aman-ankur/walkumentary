@@ -75,12 +75,15 @@ class LocationService:
             
             # Make API request
             url = f"{self.base_url}/search?" + urlencode(params)
+            print(f"DEBUG: Nominatim URL: {url}")
             
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(url, headers=self.headers)
+                print(f"DEBUG: Nominatim response status: {response.status_code}")
                 response.raise_for_status()
                 
                 nominatim_results = response.json()
+                print(f"DEBUG: Nominatim raw results: {nominatim_results}")
                 
             # Process results
             locations = []

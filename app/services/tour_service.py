@@ -778,6 +778,11 @@ class TourService:
             geocoded_stops = []
             for i, stop in enumerate(walkable_stops):
                 try:
+                    # Add delay between requests to avoid rate limiting
+                    if i > 0:
+                        import asyncio
+                        await asyncio.sleep(1)  # 1 second delay between geocoding requests
+                    
                     coordinates = await self._geocode_stop(stop, location)
                     if coordinates:
                         geocoded_stop = {
