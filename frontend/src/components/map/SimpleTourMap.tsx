@@ -59,6 +59,11 @@ export function SimpleTourMap({ tour, className = '', activeStopIndex }: SimpleT
       // Store map instance for cleanup
       mapInstance.current = map;
       
+      // Ensure map renders correctly in container
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+      
       // Add tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -176,18 +181,19 @@ export function SimpleTourMap({ tour, className = '', activeStopIndex }: SimpleT
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(4px);
             border-radius: 8px;
-            padding: 12px;
+            padding: 8px 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             border: 1px solid rgba(255, 107, 53, 0.3);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 200px;
           `;
           div.innerHTML = `
-            <div style="font-size: 14px;">
-              <div style="font-weight: bold; color: #c2410c; margin-bottom: 8px;">Walking Tour</div>
-              <div style="color: #666; font-size: 13px;">
-                <div style="margin-bottom: 4px;">🚶 ${validStops.length} stops</div>
-                ${tour.total_walking_distance ? `<div style="margin-bottom: 4px;">📏 ${tour.total_walking_distance}</div>` : ''}
-                ${tour.estimated_walking_time ? `<div style="margin-bottom: 4px;">⏱️ ${tour.estimated_walking_time}</div>` : ''}
+            <div style="font-size: 12px;">
+              <div style="font-weight: bold; color: #c2410c; margin-bottom: 6px; font-size: 13px;">Walking Tour</div>
+              <div style="color: #666; font-size: 11px; line-height: 1.3;">
+                <div style="margin-bottom: 3px;">🚶 ${validStops.length} stops</div>
+                ${tour.total_walking_distance ? `<div style="margin-bottom: 3px;">📏 ${tour.total_walking_distance}</div>` : ''}
+                ${tour.estimated_walking_time ? `<div style="margin-bottom: 3px;">⏱️ ${tour.estimated_walking_time}</div>` : ''}
                 ${tour.difficulty_level ? `<div>📊 ${tour.difficulty_level}</div>` : ''}
               </div>
             </div>
@@ -223,7 +229,11 @@ export function SimpleTourMap({ tour, className = '', activeStopIndex }: SimpleT
     <div 
       ref={mapRef} 
       className={`w-full h-full ${className}`}
-      style={{ minHeight: '300px' }}
+      style={{ 
+        minHeight: '300px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
     />
   );
 }

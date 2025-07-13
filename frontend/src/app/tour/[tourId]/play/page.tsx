@@ -94,19 +94,21 @@ export default function TourPlayerPage() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Interactive Map */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[400px] sm:h-[500px] lg:col-span-2">
-            {tour && tour.location && tour.location.latitude && tour.location.longitude ? (
-              <SimpleTourMap tour={tour} className="h-full" />
-            ) : (
-              <div className="h-full w-full bg-gray-100 flex flex-col items-center justify-center">
-                <div className="text-gray-500 mb-2">Map loading error</div>
-                <div className="text-sm text-gray-400">
-                  Tour: {tour ? '✓' : '✗'}, 
-                  Location: {tour?.location ? '✓' : '✗'}, 
-                  Coords: {tour?.location?.latitude ? '✓' : '✗'}/{tour?.location?.longitude ? '✓' : '✗'}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden lg:col-span-2">
+            <div className="h-[350px] sm:h-[450px] md:h-[500px] w-full">
+              {tour && tour.location && tour.location.latitude && tour.location.longitude ? (
+                <SimpleTourMap tour={tour} className="h-full w-full" />
+              ) : (
+                <div className="h-full w-full bg-gray-100 flex flex-col items-center justify-center">
+                  <div className="text-gray-500 mb-2">Map loading error</div>
+                  <div className="text-sm text-gray-400">
+                    Tour: {tour ? '✓' : '✗'}, 
+                    Location: {tour?.location ? '✓' : '✗'}, 
+                    Coords: {tour?.location?.latitude ? '✓' : '✗'}/{tour?.location?.longitude ? '✓' : '✗'}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Audio player */}
