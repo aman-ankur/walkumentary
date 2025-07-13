@@ -10,51 +10,87 @@ from app.config import settings
 # Create async engine
 # Determine connect_args based on database type
 database_url = settings.DATABASE_URL.lower()
-logging.info(f"Database URL contains: {database_url}")
+logging.info(f"Analyzing database URL: {database_url[:50]}...")
+
+# Check if this is Supabase by looking for multiple indicators
+is_supabase = (
+    "supabase.co" in database_url or 
+    "pooler" in database_url or 
+    "kumruxjaiwdjiwvmtjyh" in database_url or
+    "db.kumruxjaiwdjiwvmtjyh.supabase.co" in database_url
+)
 
 if "sqlite" in database_url:
     # SQLite specific configuration
     connect_args = {"check_same_thread": False}
     poolclass = StaticPool
     extra_kwargs = {"connect_args": connect_args}
-    logging.info("Using SQLite configuration")
-elif "supabase.co" in database_url or "pooler" in database_url or "db.kumruxjaiwdjiwvmtjyh.supabase.co" in database_url:
-    # Supabase with pgbouncer - disable all prepared statements completely
+    logging.info("✅ Using SQLite configuration")
+elif is_supabase:
+    # Supabase ALWAYS uses pgbouncer - FORCE disable ALL prepared statements
+    logging.info("🔧 DETECTED SUPABASE - Applying aggressive pgbouncer compatibility")
+    
     connect_args = {
+        # Completely disable prepared statements at asyncpg level
         "statement_cache_size": 0,
         "prepared_statement_cache_size": 0,
+        # Additional server settings
         "server_settings": {
-            "application_name": "walkumentary_app",
-        }
+            "application_name": "walkumentary_render",
+            "statement_timeout": "30s",
+        },
+        # Force no prepared statements
+        "command_timeout": 30,
     }
+    
+    # No connection pooling class - let SQLAlchemy handle it
     poolclass = None
-    # Additional SQLAlchemy-level configuration for pgbouncer compatibility
+    
+    # Comprehensive SQLAlchemy configuration for pgbouncer
     extra_kwargs = {
         "connect_args": connect_args,
         "pool_pre_ping": True,
-        "pool_recycle": 300,  # Recycle connections every 5 minutes
+        "pool_recycle": 300,  # Recycle every 5 minutes
+        "pool_reset_on_return": "commit",  # Always commit on return
+        "pool_timeout": 30,
         "execution_options": {
+            # Critical: This prevents prepared statements at SQLAlchemy level
             "isolation_level": "AUTOCOMMIT",
-            "compiled_cache": {}  # Disable compiled statement cache
-        }
+            "compiled_cache": {},  # Disable compiled statement cache
+            "schema_translate_map": None,  # Disable schema translation
+        },
     }
-    logging.info("Using Supabase pgbouncer configuration")
+    logging.info("✅ Applied COMPREHENSIVE Supabase pgbouncer configuration")
 else:
     # Regular PostgreSQL
     connect_args = {}
     poolclass = None
     extra_kwargs = {"connect_args": connect_args}
-    logging.info("Using regular PostgreSQL configuration")
+    logging.info("✅ Using regular PostgreSQL configuration")
 
-engine = create_async_engine(
-    settings.database_url_async,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    # Disable SQL statement echo; detailed logs can be enabled by LOG_LEVEL or setting SQL_DEBUG env
-    echo=False,
-    poolclass=poolclass,
-    **extra_kwargs,
-)
+# Create engine with appropriate configuration
+if is_supabase:
+    # For Supabase, override pool settings to work with pgbouncer
+    engine = create_async_engine(
+        settings.database_url_async,
+        pool_size=5,  # Smaller pool for pgbouncer
+        max_overflow=0,  # No overflow for pgbouncer
+        echo=False,
+        poolclass=poolclass,
+        **extra_kwargs,
+    )
+    logging.info("🚀 Supabase engine created with pgbouncer-optimized settings")
+else:
+    # Regular PostgreSQL or SQLite
+    engine = create_async_engine(
+        settings.database_url_async,
+        pool_size=settings.DATABASE_POOL_SIZE,
+        max_overflow=settings.DATABASE_MAX_OVERFLOW,
+        echo=False,
+        poolclass=poolclass,
+        **extra_kwargs,
+    )
+    logging.info("🚀 Standard engine created")
 
 # Create sessionmaker
 AsyncSessionLocal = async_sessionmaker(
