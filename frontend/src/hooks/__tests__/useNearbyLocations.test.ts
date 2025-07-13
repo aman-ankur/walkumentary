@@ -23,6 +23,8 @@ const mockLocations: LocationResponse[] = [
     location_type: "historic",
     distance: 150,
     location_metadata: { rating: 4.5 },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   },
   {
     id: "2",
@@ -35,6 +37,8 @@ const mockLocations: LocationResponse[] = [
     location_type: "park",
     distance: 300,
     location_metadata: { rating: 4.2 },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   },
 ];
 

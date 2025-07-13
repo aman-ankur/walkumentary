@@ -29,6 +29,8 @@ const mockNearbyLocations: LocationResponse[] = [
     longitude: 18.4232,
     distance: 150,
     location_metadata: { rating: 4.5 },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   },
   {
     id: "2",
@@ -38,6 +40,8 @@ const mockNearbyLocations: LocationResponse[] = [
     longitude: 18.4229,
     distance: 300,
     location_metadata: { rating: 4.2 },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   },
 ];
 

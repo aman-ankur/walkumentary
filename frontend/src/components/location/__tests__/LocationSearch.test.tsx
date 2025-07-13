@@ -3,15 +3,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { LocationSearch } from '../LocationSearch';
-import { searchLocations } from '@/lib/api';
+import { api } from '@/lib/api';
 import { LocationResponse } from '@/lib/types';
 
 // Mock the API function
 jest.mock('@/lib/api', () => ({
-  searchLocations: jest.fn(),
+  api: {
+    searchLocations: jest.fn(),
+  },
 }));
 
-const mockSearchLocations = searchLocations as jest.MockedFunction<typeof searchLocations>;
+const mockSearchLocations = api.searchLocations as jest.MockedFunction<typeof api.searchLocations>;
 
 // Mock the useDebounce hook
 jest.mock('@/hooks/useDebounce', () => ({
@@ -30,6 +32,8 @@ const mockLocations: LocationResponse[] = [
     country: 'United States',
     location_type: 'park',
     location_metadata: { rating: 4.5 },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   },
   {
     id: '2',
@@ -41,6 +45,8 @@ const mockLocations: LocationResponse[] = [
     country: 'United States', 
     location_type: 'landmark',
     location_metadata: { rating: 4.2 },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   },
 ];
 
@@ -82,7 +88,7 @@ describe('LocationSearch', () => {
     await user.type(searchInput, 'Central Park');
     
     await waitFor(() => {
-      expect(mockSearchLocations).toHaveBeenCalledWith('Central Park');
+      expect(mockSearchLocations).toHaveBeenCalledWith({ query: 'Central Park' });
     });
   });
 
