@@ -9,36 +9,47 @@ from app.config import settings
 
 # Create async engine
 # Determine connect_args based on database type
-if "sqlite" in settings.DATABASE_URL:
+database_url = settings.DATABASE_URL.lower()
+logging.info(f"Database URL contains: {database_url}")
+
+if "sqlite" in database_url:
     # SQLite specific configuration
     connect_args = {"check_same_thread": False}
     poolclass = StaticPool
-elif "supabase.co" in settings.DATABASE_URL or "pooler" in settings.DATABASE_URL:
-    # Supabase with pgbouncer - disable all prepared statements
-    from uuid import uuid4
+    extra_kwargs = {"connect_args": connect_args}
+    logging.info("Using SQLite configuration")
+elif "supabase.co" in database_url or "pooler" in database_url or "db.kumruxjaiwdjiwvmtjyh.supabase.co" in database_url:
+    # Supabase with pgbouncer - disable all prepared statements completely
     connect_args = {
         "statement_cache_size": 0,
         "prepared_statement_cache_size": 0,
+        "server_settings": {
+            "application_name": "walkumentary_app",
+        }
     }
     poolclass = None
     # Additional SQLAlchemy-level configuration for pgbouncer compatibility
     extra_kwargs = {
         "connect_args": connect_args,
+        "pool_pre_ping": True,
+        "pool_recycle": 300,  # Recycle connections every 5 minutes
         "execution_options": {
-            "isolation_level": "AUTOCOMMIT"
+            "isolation_level": "AUTOCOMMIT",
+            "compiled_cache": {}  # Disable compiled statement cache
         }
     }
+    logging.info("Using Supabase pgbouncer configuration")
 else:
     # Regular PostgreSQL
     connect_args = {}
     poolclass = None
     extra_kwargs = {"connect_args": connect_args}
+    logging.info("Using regular PostgreSQL configuration")
 
 engine = create_async_engine(
     settings.database_url_async,
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    pool_pre_ping=True,
     # Disable SQL statement echo; detailed logs can be enabled by LOG_LEVEL or setting SQL_DEBUG env
     echo=False,
     poolclass=poolclass,
