@@ -10,20 +10,48 @@
 import { supabase } from './supabase';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ""; // same-origin by default
-console.log('🔍 API Configuration:', {
-  BASE_URL,
-  NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  NODE_ENV: process.env.NODE_ENV,
-  currentOrigin: typeof window !== 'undefined' ? window.location.origin : 'SSR'
-});
+
+// Only log API config in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔍 API Configuration:', {
+    BASE_URL,
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    currentOrigin: typeof window !== 'undefined' ? window.location.origin : 'SSR'
+  });
+}
 
 export async function request<T>(
   path: string,
   options: RequestInit = {},
   parseJson = true,
 ): Promise<T> {
-  // Get the current session for auth token
-  const { data: { session } } = await supabase.auth.getSession();
+  // Get the current session for auth token WITH TIMEOUT AND FALLBACK
+  let session = null;
+  
+  // Check if this endpoint requires authentication
+  const publicEndpoints = ['/health', '/locations/search'];
+  const isPublicEndpoint = publicEndpoints.some(endpoint => path.startsWith(endpoint));
+  
+  if (!isPublicEndpoint) {
+    // Only get session for authenticated endpoints, with timeout
+    try {
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Session timeout')), 1000)
+      );
+      
+      const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+      session = data?.session;
+    } catch (error) {
+      // Only log session errors in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Session retrieval failed or timed out for', path, '- proceeding without auth:', error);
+      }
+    }
+  } else if (process.env.NODE_ENV === 'development') {
+    console.log('🚀 Skipping session call for public endpoint:', path);
+  }
   
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -36,23 +64,69 @@ export async function request<T>(
   }
 
   const fullUrl = `${BASE_URL}${path}`;
-  console.log('🌐 FETCH REQUEST:', { fullUrl, BASE_URL, path, headers, options });
   
-  const res = await fetch(fullUrl, {
-    credentials: "include",
-    ...options,
-    headers,
-  });
-  
-  console.log('📡 FETCH RESPONSE:', { url: fullUrl, status: res.status, statusText: res.statusText, ok: res.ok });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API ${res.status} ${res.statusText}: ${text}`);
+  // Only log requests in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🌐 FETCH REQUEST:', { 
+      fullUrl, 
+      BASE_URL, 
+      path, 
+      headers: { ...headers, Authorization: headers.Authorization ? '[HIDDEN]' : undefined }, 
+      options,
+      isPublicEndpoint,
+      sessionStatus: session ? 'authenticated' : 'anonymous'
+    });
   }
+  
+  // Add fetch timeout for better reliability  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-  // Binary responses (audio) – caller sets parseJson=false
-  return (parseJson ? (await res.json()) : ((await res.blob()) as unknown)) as T;
+  try {
+    const response = await fetch(fullUrl, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // Only log responses in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📡 FETCH RESPONSE:', { 
+        url: response.url, 
+        status: response.status, 
+        statusText: response.statusText, 
+        ok: response.ok 
+      });
+    }
+
+    if (!response.ok) {
+      // Always log errors, but sanitize sensitive info
+      const errorMessage = `API Error ${response.status}: ${response.statusText}`;
+      console.error(errorMessage, { path, status: response.status });
+      throw new Error(errorMessage);
+    }
+
+    if (!parseJson) {
+      return response as unknown as T;
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    // Always log errors for debugging, but sanitize
+    if (error.name === 'AbortError') {
+      console.error('Request timeout:', { path, timeout: '15s' });
+      throw new Error('Request timeout - please try again');
+    } else {
+      console.error('Request failed:', { path, error: error.message });
+      throw error;
+    }
+  }
 }
 
 export const api = {

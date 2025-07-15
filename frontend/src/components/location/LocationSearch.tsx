@@ -50,15 +50,21 @@ export function LocationSearch({
   
   // Search function
   const searchLocations = useCallback(async (searchQuery: string) => {
-    console.log('searchLocations called with:', searchQuery);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('searchLocations called with:', searchQuery);
+    }
     
     if (!searchQuery.trim() || searchQuery.length < 2) {
-      console.log('Search query too short, clearing results');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Search query too short, clearing results');
+      }
       setResults(null);
       return;
     }
     
-    console.log('Starting location search...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Starting location search...');
+    }
     setIsLoading(true);
     setError(null);
     
@@ -71,14 +77,20 @@ export function LocationSearch({
       // Add user location for proximity search if available
       if (userLocationRef.current) {
         params.append("coordinates", `${userLocationRef.current[0]},${userLocationRef.current[1]}`);
-        console.log('Added user coordinates:', userLocationRef.current);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Added user coordinates:', userLocationRef.current);
+        }
       }
       
       const searchUrl = `/locations/search?${params}`;
-      console.log('Making API call to:', searchUrl);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Making API call to:', searchUrl);
+      }
       
       const response = await api.get<SearchResult>(searchUrl); // Parse JSON and expect SearchResult
-      console.log('Search API response:', response);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Search API response:', response);
+      }
       
       setResults(response);
     } catch (err) {

@@ -719,7 +719,7 @@ class TourService:
 
     def _truncate_for_tts(self, text: str) -> str:
         """Trim text to OpenAI TTS character limit and end cleanly on a sentence."""
-        max_len = 4096  # OpenAI TTS actual limit
+        max_len = 8192  # Increased from 4096 to support 15+ minute tours (OpenAI TTS supports much higher)
         t = text[:max_len]
         if len(text) > max_len:
             # Try to avoid cutting words; backtrack to last period in the last 20% of slice

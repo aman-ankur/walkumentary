@@ -107,8 +107,17 @@ class Settings(BaseSettings):
     @validator("ALLOWED_ORIGINS", pre=True)
     def parse_cors_origins(cls, v):
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
-        return v
+            # Handle empty string
+            if not v.strip():
+                return ["http://localhost:3000"]
+            # Handle comma-separated string
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        elif isinstance(v, list):
+            # Handle list (from JSON or default)
+            return v
+        else:
+            # Fallback to default
+            return ["http://localhost:3000"]
 
     @property
     def is_production(self) -> bool:

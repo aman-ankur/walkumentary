@@ -49,21 +49,26 @@ export default function HomePage() {
     setTourRefreshTrigger(prev => prev + 1); // Trigger tour list refresh
   };
 
-  // Check backend connectivity on load
+  // Check backend connectivity
   useEffect(() => {
-    const checkBackend = async () => {
-      try {
+    // Defer health check to avoid competing with search requests
+    const healthCheckDelay = setTimeout(async () => {
+      if (process.env.NODE_ENV === 'development') {
         console.log('Checking backend connectivity...');
+      }
+      try {
         await api.healthCheck();
-        console.log('Backend connected successfully');
         setBackendStatus('connected');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Backend connected successfully');
+        }
       } catch (error) {
         console.error('Backend connection failed:', error);
         setBackendStatus('error');
       }
-    };
-    
-    checkBackend();
+    }, 2000);
+
+    return () => clearTimeout(healthCheckDelay);
   }, []);
 
   return (
