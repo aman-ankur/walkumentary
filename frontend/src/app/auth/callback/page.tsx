@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { AuthStateRecovery } from '@/components/auth/AuthStateRecovery';
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -47,6 +48,9 @@ export default function AuthCallback() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
         <p>Completing authentication...</p>
       </div>
+      
+      {/* Simple recovery component for stuck states */}
+      <AuthStateRecovery />
     </div>
   );
 }

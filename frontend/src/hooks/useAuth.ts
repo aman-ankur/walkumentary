@@ -234,6 +234,34 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, [fetchUserProfile, setLoading]); // Removed state.user dependency to prevent re-subscriptions
 
+  // Simple tab visibility recovery for stuck auth states
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !state.session && !state.loading) {
+        // If tab becomes visible and we don't have a session, check for auth state
+        const checkAuthOnFocus = async () => {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && !state.session) {
+              if (process.env.NODE_ENV === 'development') {
+                console.log('🔄 Tab focused - found session that was missing');
+              }
+              // Let the auth state change listener handle this
+            }
+          } catch (error) {
+            // Ignore errors - don't want to break on network issues
+          }
+        };
+        
+        // Small delay to avoid rapid calls
+        setTimeout(checkAuthOnFocus, 1000);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [state.session, state.loading]);
+
   const signIn = useCallback(async () => {
     try {
       setLoading(true);
