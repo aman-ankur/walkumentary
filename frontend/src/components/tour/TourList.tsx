@@ -35,14 +35,21 @@ export function TourList({ onTourSelect, refreshTrigger }: TourListProps) {
   const [deletingTourId, setDeletingTourId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadTours();
+    // Defer tours loading to avoid network congestion with search
+    const loadDelay = setTimeout(() => {
+      loadTours();
+    }, 1500); // Wait 1.5 seconds before loading tours
+
+    return () => clearTimeout(loadDelay);
   }, [refreshTrigger]);
 
   const loadTours = async () => {
     try {
       setIsLoading(true);
       setError(null);
+      console.log('🎵 Loading user tours...');
       const userTours = await api.getUserTours();
+      console.log('✅ User tours loaded:', userTours.length);
       setTours(userTours);
     } catch (error) {
       console.error('Failed to load tours:', error);

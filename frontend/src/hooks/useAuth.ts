@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase, signInWithGoogle, signOut as supabaseSignOut } from '@/lib/supabase';
 import { apiClient } from '@/lib/api';
@@ -22,6 +22,16 @@ export function useAuth() {
     loading: true,
     error: null,
   });
+  
+  // Add ref to track if profile fetch is in progress
+  const fetchingProfileRef = useRef<string | null>(null);
+  // Add ref to track current user state to avoid dependency issues
+  const userStateRef = useRef<User | null>(null);
+
+  // Update userStateRef whenever user state changes
+  useEffect(() => {
+    userStateRef.current = state.user;
+  }, [state.user]);
 
   const setError = useCallback((error: string | null) => {
     setState(prev => ({ ...prev, error }));
@@ -33,7 +43,16 @@ export function useAuth() {
 
   // Fetch user profile from our API
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
-    console.log('fetchUserProfile called for:', supabaseUser.email);
+    const userEmail = supabaseUser.email || null;
+    
+    // Prevent duplicate calls for the same user
+    if (fetchingProfileRef.current === userEmail) {
+      console.log('🚫 Skipping duplicate fetchUserProfile call for:', userEmail);
+      return;
+    }
+    
+    console.log('fetchUserProfile called for:', userEmail);
+    fetchingProfileRef.current = userEmail;
     
     // Create fallback user immediately to prevent loading issues
     const fallbackUser: User = {
@@ -81,6 +100,9 @@ export function useAuth() {
     } catch (error) {
       console.error('Failed to fetch user profile, using fallback:', error);
       // Keep fallback user, don't set error to avoid UI issues
+    } finally {
+      // Clear the fetching flag
+      fetchingProfileRef.current = null;
     }
   }, []);
 
@@ -147,6 +169,7 @@ export function useAuth() {
           await fetchUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
+          fetchingProfileRef.current = null; // Clear any pending fetches
           setState(prev => ({ 
             ...prev, 
             user: null,
@@ -155,12 +178,14 @@ export function useAuth() {
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 Token refreshed for:', session.user.email);
           // No need to refetch profile, just update session
-        } else if (session?.user && !event.includes('SIGNED_OUT')) {
+        } else if (session?.user && !event.includes('SIGNED_OUT') && event !== 'TOKEN_REFRESHED') {
           console.log('📝 Session updated with user:', session.user.email);
-          // This handles cases where session becomes available without a specific event
-          if (!state.user) {
+          // Only fetch if we don't have a user AND no fetch is in progress (using ref to avoid dependency issues)
+          if (!userStateRef.current && !fetchingProfileRef.current) {
             console.log('🔄 Fetching profile for newly available session');
             await fetchUserProfile(session.user);
+          } else {
+            console.log('🚫 Skipping duplicate profile fetch - user exists or fetch in progress');
           }
         }
         
@@ -170,7 +195,7 @@ export function useAuth() {
     );
 
     return () => subscription.unsubscribe();
-  }, [fetchUserProfile, setLoading]);
+  }, [fetchUserProfile, setLoading]); // Removed state.user dependency to prevent re-subscriptions
 
   const signIn = useCallback(async () => {
     try {

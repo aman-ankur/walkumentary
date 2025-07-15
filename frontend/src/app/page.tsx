@@ -49,7 +49,7 @@ export default function HomePage() {
     setTourRefreshTrigger(prev => prev + 1); // Trigger tour list refresh
   };
 
-  // Check backend connectivity on load
+  // Check backend connectivity on load (deferred to avoid search congestion)
   useEffect(() => {
     const checkBackend = async () => {
       try {
@@ -63,7 +63,12 @@ export default function HomePage() {
       }
     };
     
-    checkBackend();
+    // Defer health check to prioritize location search
+    const healthCheckDelay = setTimeout(() => {
+      checkBackend();
+    }, 2000); // Wait 2 seconds before health check
+
+    return () => clearTimeout(healthCheckDelay);
   }, []);
 
   return (
