@@ -266,10 +266,18 @@ export function useAuth() {
     }
   }, [setError, setLoading]);
 
+  const refreshProfile = useCallback(async () => {
+    if (state.supabaseUser) {
+      await fetchUserProfile(state.supabaseUser);
+    }
+  }, [state.supabaseUser, fetchUserProfile]);
+
   return {
     ...state,
+    isAuthenticated: !!state.session,
     signIn,
     signOut,
+    refreshProfile,
     setError,
   };
 }

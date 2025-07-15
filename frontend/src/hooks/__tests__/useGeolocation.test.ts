@@ -34,6 +34,18 @@ const mockPosition: GeolocationPosition = {
     }),
   },
   timestamp: Date.now(),
+  toJSON: () => ({
+    coords: {
+      latitude: -33.924,
+      longitude: 18.424,
+      accuracy: 10,
+      altitude: null,
+      altitudeAccuracy: null,
+      heading: null,
+      speed: null,
+    },
+    timestamp: Date.now(),
+  }),
 };
 
 describe("useGeolocation", () => {
