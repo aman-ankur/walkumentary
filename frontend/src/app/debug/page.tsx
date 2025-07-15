@@ -22,17 +22,27 @@ export default function DebugPage() {
     
     try {
       // Test health endpoint first
-      console.log('🧪 Testing health endpoint...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🧪 Testing health endpoint...');
+      }
       const healthResult = await api.healthCheck();
-      console.log('✅ Health check result:', healthResult);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Health check result:', healthResult);
+      }
       
       // Test location search
-      console.log('🧪 Testing location search...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🧪 Testing location search...');
+      }
       const searchUrl = '/locations/search?query=paris&limit=5';
-      console.log('🧪 Search URL:', searchUrl);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🧪 Search URL:', searchUrl);
+      }
       
       const searchResult = await api.get(searchUrl);
-      console.log('✅ Search result:', searchResult);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Search result:', searchResult);
+      }
       
       setTestResult(`✅ SUCCESS!\n\nHealth: ${JSON.stringify(healthResult, null, 2)}\n\nSearch: ${JSON.stringify(searchResult, null, 2)}`);
     } catch (error) {
