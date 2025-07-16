@@ -124,6 +124,7 @@ async def get_tour_status(
         )
 
 @router.get("/{tour_id}/audio", include_in_schema=False)
+@router.head("/{tour_id}/audio", include_in_schema=False)
 async def get_tour_audio_public(tour_id: uuid.UUID):
     """Stream tour audio if it exists in Redis cache. No authentication required."""
     # Try Redis first; fall back to 404. We purposely skip user-ownership checks

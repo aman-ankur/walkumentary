@@ -125,10 +125,10 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const onTime = () => setCurrentTime(audio.currentTime);
     const onDur = () => {
       const dur = audio.duration;
-      console.log('Audio duration changed:', dur, 'isNaN:', isNaN(dur), 'isFinite:', isFinite(dur));
-      if (isFinite(dur) && !isNaN(dur)) {
+      if (isFinite(dur) && !isNaN(dur) && dur > 0) {
         setDuration(dur);
       } else {
+        // Don't log infinity/NaN values - they're normal during loading
         setDuration(0);
       }
     };
@@ -143,15 +143,13 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setDuration(0);
     };
     const onCanPlay = () => {
-      console.log('Audio can play, duration:', audio.duration);
       // Force duration update when audio is ready
-      if (isFinite(audio.duration) && !isNaN(audio.duration)) {
+      if (isFinite(audio.duration) && !isNaN(audio.duration) && audio.duration > 0) {
         setDuration(audio.duration);
       }
     };
     const onLoadedMetadata = () => {
-      console.log('Audio metadata loaded, duration:', audio.duration);
-      if (isFinite(audio.duration) && !isNaN(audio.duration)) {
+      if (isFinite(audio.duration) && !isNaN(audio.duration) && audio.duration > 0) {
         setDuration(audio.duration);
       }
     };
