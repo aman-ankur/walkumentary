@@ -46,7 +46,7 @@ export async function request<T>(
     } catch (error) {
       // Only log session errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Session retrieval failed or timed out for', path, '- proceeding without auth:', error?.message || error);
+        console.warn('Session retrieval failed or timed out for', path, '- proceeding without auth:', error instanceof Error ? error.message : error);
       }
     }
   } else if (process.env.NODE_ENV === 'development') {

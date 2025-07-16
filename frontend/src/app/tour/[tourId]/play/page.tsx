@@ -12,7 +12,7 @@ import dynamic from "next/dynamic";
 import { getTourCover } from "@/lib/artwork";
 
 const SimpleTourMap = dynamic(
-  () => import("@/components/map/SimpleTourMap"),
+  () => import("@/components/map/SimpleTourMap").then(mod => ({ default: mod.default })),
   { 
     ssr: false,
     loading: () => (
