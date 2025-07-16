@@ -21,7 +21,7 @@ See Walkumentary in action! This demo shows the complete user journey from locat
 
 ## Overview
 
-Walkumentary is a **modern, cost-optimized mobile web application** that transforms how you explore new places. Using cutting-edge AI technology, it generates personalized audio tours for landmarks and points of interest.
+Walkumentary is a **modern mobile web application** that transforms how you explore new places. Discover the world like never before with cutting-edge AI technology that generates personalized audio tours for landmarks and points of interest, complete with live map navigation and interactive location tracking.
 
 ## Key Features
 
