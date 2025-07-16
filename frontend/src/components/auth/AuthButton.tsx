@@ -28,12 +28,12 @@ export function AuthButton({
   if (user) {
     return (
       <Button 
-        variant={variant} 
+        variant={showText ? variant : "outline"} 
         size={size}
         onClick={signOut}
         className="flex items-center gap-2"
       >
-        <LogOut className="h-4 w-4" />
+        {showText ? <LogOut className="h-4 w-4" /> : <User className="h-4 w-4" />}
         {showText && "Sign out"}
       </Button>
     );
