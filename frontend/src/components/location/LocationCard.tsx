@@ -71,7 +71,7 @@ export function LocationCard({
   };
   
   return (
-    <Card className={`w-full transition-shadow hover:shadow-md ${className}`}>
+    <Card className={`w-full transition-all duration-200 hover:shadow-lg border-2 border-gray-100 hover:border-orange-200 rounded-xl ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -104,7 +104,7 @@ export function LocationCard({
           {/* Location Type */}
           {location.location_type && (
             <div className="flex items-center gap-2 text-sm">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
                 {getLocationTypeLabel(location.location_type)}
               </span>
             </div>
@@ -140,11 +140,11 @@ export function LocationCard({
         
         {/* Actions */}
         {showActions && (
-          <div className="flex gap-2 pt-2 border-t">
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
             {onGenerateTour && (
               <Button 
                 onClick={onGenerateTour}
-                className="flex-1"
+                className="flex-1 py-3 px-4 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
                 size="sm"
               >
                 <Clock className="h-4 w-4 mr-2" />
@@ -156,6 +156,7 @@ export function LocationCard({
               <Button 
                 onClick={onShowOnMap}
                 variant="outline"
+                className="py-3 px-4 rounded-xl font-medium border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all duration-200"
                 size="sm"
               >
                 <MapPin className="h-4 w-4 mr-2" />
@@ -167,6 +168,7 @@ export function LocationCard({
               <Button 
                 onClick={onTakePhoto}
                 variant="outline"
+                className="py-3 px-4 rounded-xl font-medium border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all duration-200"
                 size="sm"
               >
                 <Camera className="h-4 w-4" />

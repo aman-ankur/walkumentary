@@ -76,6 +76,18 @@ class TourService:
             if not location:
                 raise TourServiceError(f"Location {request.location_id} not found")
             
+            # DEMO HARDCODE: Return pre-created Central Park tour for demo user
+            demo_tour = await self._check_demo_tour(db, user, location, request)
+            if demo_tour:
+                logger.info(f"🎬 Returning demo tour {demo_tour.id} for Central Park demo")
+                return demo_tour
+            
+            # Check if identical tour already exists for this user
+            existing_tour = await self._find_existing_tour(db, user, request)
+            if existing_tour:
+                logger.info(f"Found existing tour {existing_tour.id} for user {user.id}, location {request.location_id}")
+                return existing_tour
+            
             # Create tour record with generating status
             tour_data = TourCreate(
                 title="Generating...",  # Placeholder that meets min_length=1
@@ -105,6 +117,115 @@ class TourService:
             await db.rollback()
             logger.error(f"Failed to start tour generation: {str(e)}")
             raise TourGenerationError(f"Failed to start tour generation: {str(e)}")
+
+    async def _check_demo_tour(
+        self,
+        db: AsyncSession,
+        user: User,
+        location: Dict[str, Any],
+        request: TourGenerationRequest
+    ) -> Optional[Tour]:
+        """
+        Check if this matches the demo parameters and return the pre-created demo tour.
+        
+        Demo conditions:
+        - User email: amanankur1110@gmail.com
+        - Location name contains "Central Park" 
+        - Interests: ['historical', 'architectural', 'natural']
+        - Duration: 30 minutes
+        - Language: en
+        """
+        try:
+            # Check if user is the demo user
+            if user.email != "amanankur1110@gmail.com":
+                logger.info(f"🎬 Demo check: User {user.email} is not demo user")
+                return None
+                
+            # Check if location is Central Park
+            location_name = location.get("name", "").lower()
+            if not location_name.startswith("central park"):
+                logger.info(f"🎬 Demo check: Location '{location_name}' is not Central Park")
+                return None
+                
+            # Check if parameters match demo
+            expected_interests = set(['historical', 'architectural', 'natural'])
+            actual_interests = set(request.interests or [])
+            logger.info(f"🎬 Demo check: Comparing interests {actual_interests} vs {expected_interests}, duration {request.duration_minutes}, lang {request.language}")
+            
+            if (actual_interests == expected_interests and 
+                request.duration_minutes == 30 and 
+                request.language == "en"):
+                
+                # Return the hardcoded demo tour
+                demo_tour_id = "4c0b366e-1c8f-40e0-acfe-f13d460f1a95"
+                result = await db.execute(
+                    select(Tour)
+                    .options(selectinload(Tour.location))
+                    .where(Tour.id == demo_tour_id)
+                )
+                
+                demo_tour = result.scalar_one_or_none()
+                if demo_tour:
+                    logger.info(f"🎬 Found demo tour for Central Park: {demo_tour_id}")
+                    return demo_tour
+                else:
+                    logger.warning(f"🎬 Demo tour {demo_tour_id} not found in database")
+                    
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error checking demo tour: {str(e)}")
+            return None
+
+    async def _find_existing_tour(
+        self,
+        db: AsyncSession,
+        user: User,
+        request: TourGenerationRequest
+    ) -> Optional[Tour]:
+        """
+        Find existing tour with identical parameters.
+        
+        Args:
+            db: Database session
+            user: Current user
+            request: Tour generation request
+            
+        Returns:
+            Existing tour if found, None otherwise
+        """
+        try:
+            # Normalize interests for comparison (sort and filter duplicates)
+            normalized_interests = sorted(set(request.interests))
+            
+            result = await db.execute(
+                select(Tour)
+                .options(selectinload(Tour.location))
+                .where(
+                    and_(
+                        Tour.user_id == user.id,
+                        Tour.location_id == request.location_id,
+                        Tour.duration_minutes == request.duration_minutes,
+                        Tour.language == request.language,
+                        Tour.status.in_(["ready", "generating"])  # Don't reuse failed tours
+                    )
+                )
+            )
+            
+            tours = result.scalars().all()
+            
+            # Check for matching interests (need to compare JSON arrays)
+            for tour in tours:
+                tour_interests = sorted(set(tour.interests or []))
+                if tour_interests == normalized_interests:
+                    logger.info(f"Found existing tour with matching parameters: {tour.id}")
+                    return tour
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error checking for existing tours: {str(e)}")
+            return None
     
     async def _generate_tour_content_background(
         self,
@@ -115,7 +236,8 @@ class TourService:
         """Background task to generate tour content and audio"""
         try:
             logger.info(f"🚀 Starting background generation for tour {tour_id}")
-            logger.info(f"📍 Location: {location.get('name', 'Unknown')} ({location.get('latitude', 0)}, {location.get('longitude', 0)})")
+            coords = location.get('coordinates', [0, 0])
+            logger.info(f"📍 Location: {location.get('name', 'Unknown')} ({coords[0]}, {coords[1]})")
             logger.info(f"⚙️  Parameters: interests={request.interests}, duration={request.duration_minutes}min, language={request.language}")
 
             # ----------------- 1. Generate textual content -----------------
