@@ -23,7 +23,7 @@ export const InterestCard: React.FC<Props> = ({ id, title, subtitle, img, select
     >
       <div
         className={clsx(
-          "relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 shadow-md transition-all",
+          "relative w-28 h-28 sm:w-24 sm:h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 shadow-md transition-all",
           selected ? "border-orange-500 shadow-orange-200" : "border-white group-hover:border-orange-300"
         )}
       >

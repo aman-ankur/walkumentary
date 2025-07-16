@@ -31,8 +31,15 @@ export const Header = () => {
         </nav>
 
         {/* Auth CTA */}
-        <div className="hidden md:block">
-          <AuthButton variant="default" size="sm" />
+        <div className="flex items-center">
+          {/* Mobile: Show icon only */}
+          <div className="md:hidden">
+            <AuthButton variant="default" size="sm" showText={false} />
+          </div>
+          {/* Desktop: Show text and icon */}
+          <div className="hidden md:block">
+            <AuthButton variant="default" size="sm" showText={true} />
+          </div>
         </div>
       </div>
     </header>
