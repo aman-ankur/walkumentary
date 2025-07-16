@@ -28,6 +28,7 @@ interface GPSLocationDetectorProps {
   className?: string;
   autoStart?: boolean;
   showSettings?: boolean;
+  compact?: boolean; // New prop for hero section usage
 }
 
 const LOCATION_TYPES = [
@@ -52,6 +53,7 @@ export function GPSLocationDetector({
   className = "",
   autoStart = false,
   showSettings = true,
+  compact = false, // Default to false for backward compatibility
 }: GPSLocationDetectorProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -152,6 +154,25 @@ export function GPSLocationDetector({
   const hasError = gpsError || locationsError;
   const hasLocation = gpsLocation && !hasError;
   const hasLocations = locations.length > 0;
+
+  // Compact mode for hero section - just the detect button
+  if (compact) {
+    return (
+      <Button
+        onClick={handleStartDetection}
+        disabled={!isGPSSupported || isLoading}
+        className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50/50 transition-all duration-200 font-medium text-gray-700 hover:text-orange-700 shadow-sm hover:shadow-md h-auto min-h-[48px]"
+        variant="outline"
+      >
+        {isGPSLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <Navigation className="w-5 h-5" />
+        )}
+        Detect Location
+      </Button>
+    );
+  }
 
   return (
     <div className={`space-y-4 ${className}`}>

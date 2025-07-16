@@ -10,7 +10,7 @@ export const Header = () => {
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
             <Image 
-              src="/walkumentary-icon.jpeg" 
+              src="/walkumentary_icon_new.png" 
               alt="Walkumentary Logo" 
               width={32} 
               height={32}

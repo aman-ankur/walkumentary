@@ -102,8 +102,11 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Selected Location */}
           {selectedLocation && (
-            <div className="bg-white rounded-2xl border shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Selected Location</h2>
+            <div className="bg-gradient-to-r from-white to-orange-50/30 rounded-2xl border-2 border-orange-100 shadow-xl p-8 backdrop-blur-sm">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
+                <span className="text-2xl">📍</span>
+                Selected Location
+              </h2>
               <LocationCard
                 location={selectedLocation}
                 onGenerateTour={handleGenerateTour}

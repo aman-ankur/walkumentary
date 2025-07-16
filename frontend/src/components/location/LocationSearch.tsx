@@ -224,7 +224,7 @@ export function LocationSearch({
       <div className="relative flex items-center gap-2">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <Input
             ref={inputRef}
             type="text"
@@ -237,13 +237,13 @@ export function LocationSearch({
                 setIsOpen(true);
               }
             }}
-            className="pl-10 pr-4"
+            className="pl-12 pr-12 py-3 h-12 text-base border-2 border-gray-200 rounded-xl focus:border-orange-300 focus:ring-orange-200 focus:ring-2 shadow-sm hover:shadow-md transition-all duration-200 bg-white/80 backdrop-blur-sm"
             disabled={isGPSLoading}
           />
           {isLoading && (
             <Loader2 
               data-testid="search-loading"
-              className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" 
+              className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 animate-spin text-orange-500" 
             />
           )}
         </div>
@@ -279,7 +279,7 @@ export function LocationSearch({
       {isOpen && (results || isLoading) && (
         <Card
           ref={resultsRef}
-          className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto bg-white shadow-lg border"
+          className="absolute top-full left-0 right-0 z-50 mt-2 max-h-80 overflow-y-auto bg-white/95 backdrop-blur-sm shadow-xl border-2 border-gray-100 rounded-xl"
         >
           {isLoading ? (
             <div className="flex items-center justify-center p-4">

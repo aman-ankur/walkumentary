@@ -10,9 +10,15 @@ export const metadata: Metadata = {
   title: 'Walkumentary',
   description: 'Personalized AI-powered audio tours for travelers',
   manifest: '/manifest.json',
-  icons: { icon: '/walkumentary-icon.jpeg' },
+  icons: { 
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/walkumentary_icon_new.png', sizes: '1024x1024', type: 'image/png' }
+    ]
+  },
   openGraph: {
-    images: ['/walkumentary-icon.jpeg'],
+    images: ['/walkumentary_icon_new.png'],
   },
 }
 
