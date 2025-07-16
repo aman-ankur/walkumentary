@@ -1,7 +1,7 @@
 # Walkumentary - Modern Travel Companion App
-*AI-Powered Personal Travel Guide*
+*Your AI-Powered Personal Travel Guide*
 
-<img src="frontend/public/walkumentary_icon_new.png" alt="Walkumentary Icon" width="120" />
+<img src="frontend/public/walkumentary_icon_new.png" alt="Walkumentary Icon" width="250" />
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=nextdotjs&logoColor=white)
