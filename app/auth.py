@@ -50,18 +50,27 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 async def verify_supabase_token(token: str) -> dict:
     """Verify Supabase JWT token"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
-        # Verify token with Supabase
+        logger.info(f"🔐 Verifying Supabase token (length: {len(token)})")
+        
+        # Get user directly with token - no need to set session
         response = supabase.auth.get_user(token)
-        if response.user:
+        
+        if response and response.user:
+            logger.info(f"✅ Token verified successfully for user: {response.user.email}")
             return {
                 "sub": response.user.id,
                 "email": response.user.email,
-                "user_metadata": response.user.user_metadata,
+                "user_metadata": response.user.user_metadata or {},
             }
         else:
-            raise AuthenticationError("Invalid token")
+            logger.warning("❌ Token verification failed - no user found in response")
+            raise AuthenticationError("Invalid token - no user found")
     except Exception as e:
+        logger.error(f"❌ Token verification failed: {str(e)}")
         raise AuthenticationError(f"Token verification failed: {str(e)}")
 
 async def get_current_user_from_token(

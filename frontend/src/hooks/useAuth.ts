@@ -110,6 +110,14 @@ export function useAuth() {
     } catch (error) {
       // Always log profile fetch errors for debugging
       console.error('Failed to fetch user profile, using fallback:', error instanceof Error ? error.message : 'Unknown error');
+      
+      // Don't sign out for temporary session issues - 403 errors can be due to session timing
+      // Only log the error and continue with fallback user
+      if (error instanceof Error && (error.message.includes('403') || error.message.includes('Forbidden'))) {
+        console.warn('🔒 Authentication temporarily failed - using fallback user (session may be refreshing)');
+        // Don't sign out - this could be a temporary session timeout during token refresh
+      }
+      
       // Keep fallback user, don't set error to avoid UI issues
     } finally {
       // Clear the fetching flag

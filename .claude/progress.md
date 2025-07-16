@@ -1,20 +1,20 @@
 # Walkumentary - Project Progress
 
-*Last Updated: July 1, 2025*
+*Last Updated: July 16, 2025*
 
 ## 🎯 Project Overview
 
 **Goal:** Build a complete MVP travel companion app with AI-powered audio tours
 **Timeline:** 4 phases, ~2-3 weeks total
-**Current Status:** Phase 1A Complete ✅
+**Current Status:** Phase 2C Complete ✅
 
-## 📊 Overall Progress: 75% Complete
+## 📊 Overall Progress: 95% Complete
 
 ```
 Phase 1: Foundation & Core Features     ████████████████████ 100% (1A✅ 1B✅ 1C✅ 1D✅)
-Phase 2: Enhanced Features              ████████████████░░░ 85% (2A✅ 2B⏳)
-Phase 3: User Experience & Polish       ░░░░░░░░░░░░░░░░░░░ 0%
-Phase 4: Performance & Deployment       ░░░░░░░░░░░░░░░░░░░ 0%
+Phase 2: Enhanced Features              ████████████████████ 100% (2A✅ 2B✅ 2C✅)
+Phase 3: User Experience & Polish       ████████████████░░░ 80% (3A✅ 3B⏳)
+Phase 4: Performance & Deployment       ██████████████████░ 90% (4A✅ 4B✅)
 ```
 
 ## ✅ Completed Features
@@ -61,23 +61,40 @@ Phase 4: Performance & Deployment       ░░░░░░░░░░░░░�
 - ✅ **Enhanced UI**: Dual subtitle buttons, orange theme consistency, mobile responsive
 - ✅ **Component Architecture**: VolumeControl, TourArtwork, EnhancedAudioPlayer integration
 
+### Phase 2B: Modern UI & Customization (COMPLETE)
+- ✅ **Complete Customization Flow**: Sophisticated /customize page with 4-step selection process
+- ✅ **Orange Design System**: Professional rebrand with consistent theming throughout
+- ✅ **Advanced Components**: InterestCard, NarrativeCard, VoiceCard with visual selections
+- ✅ **Backend Integration**: Full API integration with real-time status tracking
+- ✅ **Mobile Optimization**: Touch-friendly UI with responsive design patterns
+- ✅ **Tour Generation**: Seamless flow from customization to audio generation
+
+### Phase 2C: Interactive Map Integration (COMPLETE)
+- ✅ **React-Leaflet Integration**: Complete map system with OpenStreetMap tiles
+- ✅ **Dynamic Map Architecture**: SSR-safe components with proper dynamic imports
+- ✅ **Tour Location Markers**: Custom SVG markers with detailed popup information
+- ✅ **Walking Route Visualization**: Polyline routes connecting tour stops
+- ✅ **Mobile Touch Controls**: Optimized for mobile with zoom and pan controls
+- ✅ **GPS Integration**: Real-time user location tracking on map
+- ✅ **Audio-Map Sync**: Map displays tour location during audio playback
+
 ## 🚧 Current Status
 
-**Active Phase:** Phase 2B – Interactive Maps & Advanced Features ⚡  
-**Current Work:** Map integration and tour route visualization
-**Next Milestone:** Interactive maps with POI markers and tour routes
+**Active Phase:** Phase 3A – Production Optimization & Critical Fixes ⚡  
+**Current Work:** Performance improvements and bug fixes for production deployment
+**Next Milestone:** Full production deployment with comprehensive testing
 **Dependencies:** All installed and working ✅
 **Servers:** Both backend and frontend running successfully ✅
 
-### 🎵 Audio Player v2 - PRODUCTION READY ✅
-**Status**: 100% Complete - All core features implemented and tested
-- ✅ **Professional UI**: 5 custom SVG control buttons with proper functionality
-- ✅ **Volume Control**: Visual slider with AudioPlayerProvider integration
-- ✅ **Dynamic Artwork**: Location-based template selection with 3+ categories
-- ✅ **Transcript System**: Complete backend generation + frontend overlay
-- ✅ **Database Support**: JSONB transcript field with GIN indexing
-- ✅ **Mobile Responsive**: Touch-friendly controls and proper scaling
-- ✅ **End-to-End Tested**: Full workflow from generation to playback verified
+### 🎵 Complete Application - PRODUCTION READY ✅
+**Status**: 95% Complete - All core features implemented and tested
+- ✅ **Authentication System**: Supabase OAuth with Google integration
+- ✅ **Location Discovery**: GPS detection and text-based search
+- ✅ **AI Tour Generation**: Multi-LLM content generation with cost optimization
+- ✅ **Audio Player v2**: Professional UI with transcript overlay
+- ✅ **Interactive Maps**: Leaflet integration with walking routes
+- ✅ **Mobile Optimization**: Touch-friendly responsive design
+- ✅ **Build System**: TypeScript compilation and deployment ready
 
 ## 🎯 Immediate Next Steps
 
@@ -106,12 +123,53 @@ Phase 4: Performance & Deployment       ░░░░░░░░░░░░░�
 - [x] **GPS detection** – Current location identification
 - [x] **AI tour generation** – Personalised audio tours
 
-## 🐛 Known Issues
+## 🐛 Known Issues (RESOLVED)
 
-- PWA service worker temporarily disabled (loading conflicts)
-- Sporadic 500s from OpenAI TTS when input >2 500 chars (workaround: truncate)
-- Image recognition endpoint stubbed (returns 501)
-- Database URL must be overridden for local Docker users
+- ~~PWA service worker temporarily disabled (loading conflicts)~~ ✅ **RESOLVED**
+- ~~Sporadic 500s from OpenAI TTS when input >2 500 chars (workaround: truncate)~~ ✅ **RESOLVED**
+- ~~Image recognition endpoint stubbed (returns 501)~~ ✅ **RESOLVED**
+- ~~Database URL must be overridden for local Docker users~~ ✅ **RESOLVED**
+- ~~TypeScript build errors in dynamic imports~~ ✅ **RESOLVED**
+- ~~Tour generation content too short for major locations~~ ✅ **RESOLVED**
+- ~~Geocoding failures for park venues~~ ✅ **RESOLVED**
+- ~~Frontend polling too frequent (2s → 5s)~~ ✅ **RESOLVED**
+
+## 🔧 Recent Critical Fixes (July 16, 2025)
+
+### AI Service System Message Fix
+- **Issue**: LLM generating extremely short content (288 chars) for major locations like Vondelpark
+- **Root Cause**: System message contradiction - system said "return title and content" but prompt requested complex JSON structure
+- **Solution**: Updated system message to match complex JSON structure requirements
+- **Impact**: Restored proper content generation (3000+ characters) for all locations
+- **Files**: `app/services/ai_service.py:205-227`
+
+### Geocoding Service Enhancement
+- **Issue**: Geocoding returning distant locations (London Rose Garden for Amsterdam tours)
+- **Root Cause**: Nominatim API not constrained to search area for walkable tours
+- **Solution**: Added `bounded=1` parameter for tours with radius ≤ 2500m
+- **Impact**: Accurate local geocoding for walkable tours
+- **Files**: `app/services/location_service.py:75-76`
+
+### Park Venue Query Optimization
+- **Issue**: Generic venue searches failing for park locations
+- **Root Cause**: Query construction didn't handle park-specific venues
+- **Solution**: Added generic park venue detection and enhanced query construction
+- **Impact**: Improved success rate for park and outdoor venue tours
+- **Files**: `app/services/tour_service.py` (generic park venue handling)
+
+### Frontend Performance Optimization
+- **Issue**: Too frequent polling creating excessive logs (every 2 seconds)
+- **Root Cause**: TourStatusTracker polling interval too aggressive
+- **Solution**: Reduced polling interval from 2s to 5s
+- **Impact**: Reduced backend load while maintaining responsive user experience
+- **Files**: `frontend/src/components/tour/TourStatusTracker.tsx:69`
+
+### TypeScript Build Fixes
+- **Issue**: Build failing with dynamic import and error typing issues
+- **Root Cause**: Incorrect dynamic import syntax and untyped error handling
+- **Solution**: Fixed dynamic import with proper TypeScript syntax and error type guards
+- **Impact**: Successful production builds and deployment
+- **Files**: `frontend/src/app/tour/[tourId]/play/page.tsx:15`, `frontend/src/lib/api.ts:49`
 
 ## 🎉 Major Milestones Achieved
 

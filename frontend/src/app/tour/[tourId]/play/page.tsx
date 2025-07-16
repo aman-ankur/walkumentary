@@ -12,7 +12,7 @@ import dynamic from "next/dynamic";
 import { getTourCover } from "@/lib/artwork";
 
 const SimpleTourMap = dynamic(
-  () => import("@/components/map/SimpleTourMap").then(mod => ({ default: mod.SimpleTourMap })),
+  () => import("@/components/map/SimpleTourMap").then(mod => ({ default: mod.default })),
   { 
     ssr: false,
     loading: () => (
@@ -54,11 +54,20 @@ export default function TourPlayerPage() {
         console.log('Loading audio track:', audioUrl);
         console.log('Audio track details:', { src: audioUrl, title: t.title, cover: coverImage });
         
-        // Test if audio URL is accessible
+        // Test if audio URL is accessible (try HEAD first, fallback to GET)
         fetch(audioUrl, { method: 'HEAD' })
           .then(response => {
-            console.log('Audio URL accessibility test:', response.status, response.statusText);
-            console.log('Audio response headers:', Object.fromEntries(response.headers.entries()));
+            if (response.status === 405) {
+              // HEAD not supported, try GET with range header for minimal data
+              return fetch(audioUrl, { 
+                method: 'GET',
+                headers: { 'Range': 'bytes=0-1' }
+              });
+            }
+            return response;
+          })
+          .then(response => {
+            // Audio endpoint is accessible
           })
           .catch(error => {
             console.error('Audio URL accessibility test failed:', error);

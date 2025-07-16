@@ -38,6 +38,14 @@ export function getTemplatesForCategory(category: ArtworkCategory): ArtworkTempl
 
 export function getTemplateByIndex(category: ArtworkCategory, index: number): ArtworkTemplate {
   const templates = getTemplatesForCategory(category);
+  
+  // If no templates available for this category, fallback to urban
+  if (templates.length === 0) {
+    const fallbackTemplates = artworkTemplates.urban;
+    const safeIndex = index % fallbackTemplates.length;
+    return fallbackTemplates[safeIndex];
+  }
+  
   const safeIndex = index % templates.length;
   return templates[safeIndex];
 }

@@ -153,9 +153,8 @@ export default function CustomizePageContent() {
               tourId={generatedTourId}
               onTourReady={(tour) => {
                 setIsGenerating(false);
-                if (tour.audio_url) {
-                  router.push(`/tour/${tour.id}/play`);
-                }
+                // Navigate to tour page regardless of audio_url since the playback page handles fallback
+                router.push(`/tour/${tour.id}/play`);
               }}
               onError={(err) => {
                 alert(err);

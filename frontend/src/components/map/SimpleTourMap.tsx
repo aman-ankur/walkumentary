@@ -10,7 +10,7 @@ interface SimpleTourMapProps {
   activeStopIndex?: number;
 }
 
-export function SimpleTourMap({ tour, className = '', activeStopIndex }: SimpleTourMapProps) {
+export default function SimpleTourMap({ tour, className = '', activeStopIndex }: SimpleTourMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   
