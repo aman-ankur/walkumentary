@@ -22,7 +22,13 @@ export function TourArtwork({ tourId, tourTitle = "Tour", location }: TourArtwor
   
   // Get the specific template component
   const template = getTemplateByIndex(category, templateIndex);
-  const ArtworkComponent = template.component;
+  const ArtworkComponent = template?.component;
+  
+  // Fallback if component is still undefined
+  if (!ArtworkComponent) {
+    console.warn(`No artwork component found for category: ${category}, index: ${templateIndex}`);
+    return <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />;
+  }
   
   // Format location string for display
   const locationString = location?.name || location?.city || "Destination";

@@ -27,9 +27,9 @@ export function SubtitleOverlay({
 }: SubtitleOverlayProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const currentIdx = subtitles.findIndex(
+  const currentIdx = subtitles?.findIndex(
     (s) => currentTime >= s.startTime && currentTime <= s.endTime
-  );
+  ) ?? -1;
 
   // Auto-scroll to current segment
   useEffect(() => {
@@ -59,14 +59,14 @@ export function SubtitleOverlay({
           </Button>
         </div>
 
-        {subtitles.length === 0 ? (
+        {(subtitles?.length || 0) === 0 ? (
           <p className="text-sm text-gray-600">Transcript unavailable.</p>
         ) : (
           <div 
             ref={scrollContainerRef}
             className="space-y-2 flex-1 overflow-y-auto"
           >
-            {subtitles.map((s, idx) => (
+            {subtitles?.map((s, idx) => (
               <div
                 key={idx}
                 data-segment-index={idx}

@@ -38,7 +38,7 @@ export async function request<T>(
     try {
       const sessionPromise = supabase.auth.getSession();
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Session timeout')), 1000)
+        setTimeout(() => reject(new Error('Session timeout')), 8000)  // Increased to 8s for more reliability
       );
       
       const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
@@ -46,7 +46,7 @@ export async function request<T>(
     } catch (error) {
       // Only log session errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Session retrieval failed or timed out for', path, '- proceeding without auth:', error);
+        console.warn('Session retrieval failed or timed out for', path, '- proceeding without auth:', error?.message || error);
       }
     }
   } else if (process.env.NODE_ENV === 'development') {
