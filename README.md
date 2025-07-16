@@ -1,7 +1,7 @@
 # Walkumentary - Modern Travel Companion App
 *AI-Powered Personal Travel Guide*
 
-![Walkumentary Icon](frontend/public/walkumentary_icon_new.png)
+<img src="frontend/public/walkumentary_icon_new.png" alt="Walkumentary Icon" width="120" />
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=nextdotjs&logoColor=white)
@@ -15,7 +15,7 @@
 
 See Walkumentary in action! This demo shows the complete user journey from location discovery to personalized audio tour generation:
 
-![Walkumentary Demo](.claude/pictures/walkumentary_demo.gif)
+<img src=".claude/pictures/walkumentary_demo.gif" alt="Walkumentary Demo" width="600" />
 
 *Demo features: Location search, GPS detection, interest selection, instant tour generation, and interactive audio playback with map visualization.*
 
