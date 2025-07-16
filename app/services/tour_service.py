@@ -114,9 +114,12 @@ class TourService:
     ) -> None:
         """Background task to generate tour content and audio"""
         try:
-            logger.info(f"Starting background generation for tour {tour_id}")
+            logger.info(f"🚀 Starting background generation for tour {tour_id}")
+            logger.info(f"📍 Location: {location.get('name', 'Unknown')} ({location.get('latitude', 0)}, {location.get('longitude', 0)})")
+            logger.info(f"⚙️  Parameters: interests={request.interests}, duration={request.duration_minutes}min, language={request.language}")
 
             # ----------------- 1. Generate textual content -----------------
+            logger.info(f"🤖 Step 1: Starting LLM content generation...")
             try:
                 content_data = await self.ai_service.generate_tour_content(
                     location=location,
@@ -125,86 +128,104 @@ class TourService:
                     language=request.language,
                     narration_style=request.narration_style if hasattr(request, "narration_style") else "conversational",
                 )
+                logger.info(f"✅ LLM content generated successfully: {len(content_data['content'])} chars, provider={content_data['metadata']['actual_provider']}")
             except Exception as e:
                 # Capture stack-trace for easier debugging
-                logger.exception("LLM content generation failed")
+                logger.exception("❌ LLM content generation failed")
                 await self._set_tour_error(tour_id, f"LLM error: {str(e)}")
                 return
 
             # Persist title/content immediately and log milestone
             await self._save_content(tour_id, content_data, status="content_ready")
+            logger.info(f"💾 Content saved to database with status='content_ready'")
             logger.info(
-                "LLM content generated",
-                extra={
-                    "tour_id": str(tour_id),
-                    "chars": len(content_data["content"]),
-                    "provider": content_data["metadata"]["actual_provider"],
-                    "model": content_data["metadata"]["model"],
-                },
+                f"📊 Content metrics: {len(content_data['content'])} chars, {content_data['metadata']['actual_provider']}/{content_data['metadata']['model']}",
             )
 
             # ----------------- 1.5. Process walkable stops (if present) -----------------
+            logger.info(f"🗺️  Step 2: Processing walkable stops...")
             geocoded_stops = []
             try:
-                logger.info("Starting walkable stops processing...")
                 geocoded_stops = await self._process_walkable_tour_content(content_data, location)
                 if geocoded_stops:
-                    logger.info(f"Successfully processed {len(geocoded_stops)} walkable stops")
+                    logger.info(f"✅ Successfully geocoded {len(geocoded_stops)} walkable stops")
                     
                     # Update tour with walkable stops data
-                    logger.info("Saving walkable stops data...")
                     try:
                         await self._save_walkable_stops(tour_id, content_data, geocoded_stops)
-                        logger.info("Walkable stops data saved successfully")
+                        logger.info(f"💾 Walkable stops data saved to database")
                     except Exception as save_error:
-                        logger.error(f"Failed to save walkable stops: {save_error}")
+                        logger.error(f"❌ Failed to save walkable stops: {save_error}")
                         # Continue with tour generation even if saving walkable stops fails
                 else:
-                    logger.info("No walkable stops to process or geocoding failed")
+                    logger.warning("⚠️  No walkable stops processed (geocoding may have failed)")
             except Exception as e:
-                logger.error(f"Failed to process walkable stops: {e}")
-                import traceback
-                logger.error(f"Walkable stops processing traceback: {traceback.format_exc()}")
+                logger.error(f"❌ Walkable stops processing failed: {e}")
                 # Continue with tour generation even if walkable stops fail
             
-            logger.info("Proceeding to audio generation...")
+            logger.info("🎵 Step 3: Starting audio generation...")
 
             # ----------------- 2. Generate audio (TTS) ---------------------
             audio_data: Optional[bytes] = None
             try:
                 import asyncio, time
-                audio_text = self._truncate_for_tts(content_data["content"])
-                logger.info(f"TTS content length: {len(content_data['content'])} chars, truncated to: {len(audio_text)} chars")
+                full_text = content_data["content"]
+                
+                # Use chunked generation for long content, simple generation for short content
+                if len(full_text) > 4000:
+                    logger.info(f"📝 Long content detected: {len(full_text)} chars - using chunked TTS generation")
+                    audio_text = full_text  # Use full text with chunking
+                else:
+                    logger.info(f"📝 Short content: {len(full_text)} chars - using standard TTS generation")
+                    audio_text = self._truncate_for_tts(full_text)
+                
+                voice = request.voice if hasattr(request, "voice") and request.voice else settings.OPENAI_TTS_VOICE
+                logger.info(f"🎤 Generating audio: voice={voice}, speed=1.2")
+                
                 t0 = time.perf_counter()
-                audio_data = await asyncio.wait_for(
-                    self.ai_service.generate_audio(
-                        text=audio_text,
-                        voice=request.voice if hasattr(request, "voice") and request.voice else settings.OPENAI_TTS_VOICE,
-                        speed=1.2,
-                    ),
-                    timeout=60,
-                )
-                logger.info(
-                    "TTS generated",
-                    extra={
-                        "tour_id": str(tour_id),
-                        "ms": int((time.perf_counter() - t0) * 1000),
-                        "bytes": len(audio_data) if audio_data else 0,
-                    },
-                )
+                if len(full_text) > 4000:
+                    # Use chunked generation with longer timeout for multiple API calls
+                    audio_data = await asyncio.wait_for(
+                        self.ai_service.generate_audio_chunked(
+                            text=audio_text,
+                            voice=voice,
+                            speed=1.2,
+                        ),
+                        timeout=300,  # 5 minutes for chunked generation
+                    )
+                else:
+                    # Use standard generation
+                    audio_data = await asyncio.wait_for(
+                        self.ai_service.generate_audio(
+                            text=audio_text,
+                            voice=voice,
+                            speed=1.2,
+                        ),
+                        timeout=180,  # 3 minutes for standard generation
+                    )
+                
+                duration_ms = int((time.perf_counter() - t0) * 1000)
+                audio_size = len(audio_data) if audio_data else 0
+                logger.info(f"✅ TTS generated successfully: {audio_size} bytes in {duration_ms}ms")
+                
             except asyncio.TimeoutError:
-                logger.warning("TTS generation timed out – proceeding without audio for now")
-            except Exception:
-                logger.exception("TTS generation failed – proceeding without audio")
+                timeout_duration = "300s" if len(content_data["content"]) > 4000 else "180s"
+                logger.warning(f"⏰ TTS generation timed out ({timeout_duration}) – proceeding without audio")
+            except Exception as e:
+                logger.exception(f"❌ TTS generation failed: {str(e)} – proceeding without audio")
 
             # Store audio file (for now, we'll use cache - in production, use cloud storage)
             audio_key = f"audio:tour:{tour_id}"
             import base64
             audio_url: Optional[str] = None
             if audio_data:
+                logger.info(f"💾 Caching audio data: {len(audio_data)} bytes")
                 audio_b64 = base64.b64encode(audio_data).decode('utf-8')
                 await self.cache.set(audio_key, audio_b64, ttl=86400 * 30)
                 audio_url = f"{settings.API_BASE_URL}/tours/{tour_id}/audio"
+                logger.info(f"🔗 Audio URL set: {audio_url}")
+            else:
+                logger.warning("⚠️  No audio data to cache - tour will be text-only")
 
             # ----------------- 3. Generate transcript segments -----------------
             transcript_segments = None
@@ -221,17 +242,21 @@ class TourService:
                     estimated_duration
                 )
                 
-                logger.info(
-                    "Transcript generated",
-                    extra={
-                        "tour_id": str(tour_id),
-                        "segments": len(transcript_segments),
-                        "duration": estimated_duration
-                    }
-                )
+                if transcript_segments and len(transcript_segments) > 0:
+                    logger.info(
+                        "Transcript generated",
+                        extra={
+                            "tour_id": str(tour_id),
+                            "segments": len(transcript_segments),
+                            "duration": estimated_duration
+                        }
+                    )
+                else:
+                    logger.warning(f"Transcript generation returned empty segments for tour {tour_id}")
+                    transcript_segments = []  # Set to empty array instead of None
             except Exception as e:
-                logger.warning(f"Transcript generation failed: {e}")
-                # Continue without transcript - not critical for tour functionality
+                logger.error(f"Transcript generation failed for tour {tour_id}: {e}")
+                transcript_segments = []  # Set to empty array instead of None
             
             # Update tour in database
             from app.database import AsyncSessionLocal
@@ -250,13 +275,15 @@ class TourService:
                     tour.generation_params = content_data["metadata"]
                     
                     await db.commit()
-                    logger.info(f"Tour {tour_id} generation completed successfully with {len(transcript_segments) if transcript_segments else 0} transcript segments")
+                    logger.info(f"🎉 Tour generation completed successfully!")
+                    logger.info(f"📊 Final metrics: {len(transcript_segments) if transcript_segments else 0} transcript segments")
+                    logger.info(f"🔄 Status updated to 'ready' for tour {tour_id}")
                     
                     # Verify the update was committed by re-reading
                     await db.refresh(tour)
-                    logger.info(f"Tour {tour_id} status after commit: {tour.status}, title: {tour.title}")
+                    logger.info(f"✅ Database commit verified: status={tour.status}, title='{tour.title}'")
                 else:
-                    logger.error(f"Tour {tour_id} not found during content update")
+                    logger.error(f"❌ Tour {tour_id} not found during final update!")
                     
         except Exception as e:
             logger.exception(f"Background generation failed for tour {tour_id}")
@@ -436,11 +463,7 @@ class TourService:
                 if tour.content:
                     try:
                         # Generate audio from existing content (truncate to TTS limit)
-                        audio_text = tour.content[:4000]
-                        if len(tour.content) > 4000:
-                            last_period = audio_text.rfind('.')
-                            if last_period > 3500:
-                                audio_text = audio_text[:last_period + 1]
+                        audio_text = self._truncate_for_tts(tour.content)
                         
                         logger.info(f"Regenerating audio for {len(audio_text)} characters")
                         audio_data = await self.ai_service.generate_audio(
@@ -508,12 +531,7 @@ class TourService:
                 raise TourServiceError("Tour has no content to generate audio from")
             
             # Generate audio from existing content (truncate to TTS limit)
-            audio_text = tour.content[:4000]  # Leave some buffer
-            if len(tour.content) > 4000:
-                # Find last complete sentence within limit
-                last_period = audio_text.rfind('.')
-                if last_period > 3500:  # Ensure reasonable length
-                    audio_text = audio_text[:last_period + 1]
+            audio_text = self._truncate_for_tts(tour.content)
             
             logger.info(f"Generating audio for {len(audio_text)} characters")
             audio_data = await self.ai_service.generate_audio(
@@ -719,18 +737,71 @@ class TourService:
 
     def _truncate_for_tts(self, text: str) -> str:
         """Trim text to OpenAI TTS character limit and end cleanly on a sentence."""
-        max_len = 8192  # Increased from 4096 to support 15+ minute tours (OpenAI TTS supports much higher)
+        max_len = 4000  # OpenAI TTS limit is 4096, using 4000 for safety buffer
         t = text[:max_len]
         if len(text) > max_len:
             # Try to avoid cutting words; backtrack to last period in the last 20% of slice
             last_period = t.rfind('.')
-            if last_period > int(max_len * 0.8):
+            if last_period > int(max_len * 0.8):  # 80% of 4000 = 3200
                 t = t[: last_period + 1]
         return t
+    
+    def _chunk_text_for_tts(self, text: str, max_chunk_size: int = 4000) -> List[str]:
+        """Split long text into chunks suitable for TTS, preserving sentence boundaries."""
+        if len(text) <= max_chunk_size:
+            return [text]
+        
+        chunks = []
+        remaining_text = text
+        
+        while remaining_text:
+            if len(remaining_text) <= max_chunk_size:
+                chunks.append(remaining_text)
+                break
+                
+            # Find a good breaking point
+            chunk = remaining_text[:max_chunk_size]
+            
+            # Try to break at sentence boundary first
+            last_period = chunk.rfind('.')
+            last_exclamation = chunk.rfind('!')
+            last_question = chunk.rfind('?')
+            
+            # Use the latest sentence ending
+            sentence_break = max(last_period, last_exclamation, last_question)
+            
+            if sentence_break > int(max_chunk_size * 0.6):  # At least 60% through the chunk
+                split_point = sentence_break + 1
+            else:
+                # No good sentence break, try paragraph break
+                last_double_newline = chunk.rfind('\n\n')
+                if last_double_newline > int(max_chunk_size * 0.5):
+                    split_point = last_double_newline + 2
+                else:
+                    # Fall back to word boundary
+                    last_space = chunk.rfind(' ')
+                    split_point = last_space if last_space > int(max_chunk_size * 0.8) else max_chunk_size
+            
+            chunks.append(remaining_text[:split_point].strip())
+            remaining_text = remaining_text[split_point:].strip()
+        
+        return [chunk for chunk in chunks if chunk]  # Remove empty chunks
 
     async def _save_content(self, tour_id: uuid.UUID, content_data: dict, status: str = "content_ready"):
         """Persist generated title/content and update status in one quick transaction."""
         from app.database import AsyncSessionLocal
+        
+        # 🔍 Log what we're about to save
+        title = content_data.get("title", "")
+        content = content_data.get("content", "")
+        logger.info(f"💾 Saving content to database for tour {tour_id}:")
+        logger.info(f"   📝 Title: '{title}'")
+        logger.info(f"   📖 Content length: {len(content)} characters")
+        logger.info(f"   📊 Status: {status}")
+        logger.info(f"   📄 Content preview (first 200 chars): {content[:200]}...")
+        if len(content) > 200:
+            logger.info(f"   📄 Content preview (last 200 chars): ...{content[-200:]}")
+        
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(Tour).where(Tour.id == tour_id))
             tour = result.scalar_one_or_none()
@@ -743,6 +814,15 @@ class TourService:
                 tour.llm_model = content_data["metadata"]["model"]
                 tour.generation_params = content_data["metadata"]
                 await db.commit()
+                
+                # 🔍 Verify what was actually saved
+                await db.refresh(tour)
+                logger.info(f"✅ Content saved successfully:")
+                logger.info(f"   📝 Saved title: '{tour.title}'")
+                logger.info(f"   📖 Saved content length: {len(tour.content)} characters")
+                logger.info(f"   📊 Saved status: {tour.status}")
+            else:
+                logger.error(f"❌ Tour {tour_id} not found when trying to save content!")
 
     async def _save_walkable_stops(self, tour_id: uuid.UUID, content_data: dict, geocoded_stops: list):
         """Save walkable stops data to the tour"""
@@ -873,12 +953,21 @@ class TourService:
             cleaned_name = stop_name.lower().replace("return to the ", "").replace("return to ", "")
             cleaned_name = cleaned_name.title()
         
-        # Try different query variations, starting with simplest
+        # Try different query variations, starting with most specific
         search_queries = [
             f"{cleaned_name}, {city}",  # Simple: "Eiffel Tower, Paris"
-            f"{cleaned_name}, {city}, {country}",  # Medium: "Eiffel Tower, Paris, France"
-            cleaned_name  # Fallback: just the name
+            f"{cleaned_name}, {city}, {country}",  # Medium: "Eiffel Tower, Paris, France"  
+            cleaned_name,  # Fallback: just the name
         ]
+        
+        # Add park-specific queries for venue names that might be inside parks
+        park_venues = ['pavilion', 'theatre', 'theater', 'garden', 'monument', 'statue', 'fountain']
+        if any(venue in cleaned_name.lower() for venue in park_venues):
+            # Add broader search queries for park venues
+            search_queries.extend([
+                f"{cleaned_name} near {city}",  # "Rose Garden near Amsterdam"
+                f"{cleaned_name} {city} park",  # "Rose Garden Amsterdam park"
+            ])
         
         search_query = search_queries[0]  # Start with the simplest
         

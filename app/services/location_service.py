@@ -71,8 +71,9 @@ class LocationService:
                 # Create a small bounding box around the coordinates
                 delta = radius / 111320  # Rough conversion from meters to degrees
                 params["viewbox"] = f"{lng-delta},{lat+delta},{lng+delta},{lat-delta}"
-                # Don't use bounded=1 as it's too restrictive for famous landmarks
-                # params["bounded"] = 1
+                # Use bounded=1 for walkable tours (radius <= 2500m) to prevent distant matches
+                if radius <= 2500:
+                    params["bounded"] = 1
             
             # Make API request
             url = f"{self.base_url}/search?" + urlencode(params)

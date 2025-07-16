@@ -202,7 +202,7 @@ class AIService:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert travel guide. Create engaging audio tour content. Return only valid JSON with 'title' and 'content' fields."
+                    "content": "You are an expert travel guide. Create engaging audio tour content. Return only valid JSON with the exact structure requested in the prompt, including all required fields like 'title', 'content', 'walkable_stops', 'total_walking_distance', 'estimated_walking_time', and 'difficulty_level'."
                 },
                 {"role": "user", "content": prompt}
             ],
@@ -224,7 +224,7 @@ class AIService:
             model=config["model"],
             max_tokens=config["max_tokens"],
             temperature=config["temperature"],
-            system="You are an expert travel guide. Create engaging audio tour content. Return only valid JSON with 'title' and 'content' fields.",
+            system="You are an expert travel guide. Create engaging audio tour content. Return only valid JSON with the exact structure requested in the prompt, including all required fields like 'title', 'content', 'walkable_stops', 'total_walking_distance', 'estimated_walking_time', and 'difficulty_level'.",
             messages=[
                 {"role": "user", "content": prompt}
             ]
